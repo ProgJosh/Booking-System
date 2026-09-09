@@ -1,0 +1,13 @@
+export type Role = 'admin' | 'staff' | 'customer';
+export type Status = 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled' | 'No-show';
+export const STATUSES: Status[] = ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'No-show'];
+export type ScheduleDay = { day: number; open: boolean; start: string; end: string };
+export type User = { id: string; name: string; email: string; phone: string; role: Role; passwordHash?: string; salt?: string; staffId?: string; notes?: string };
+export type Service = { id: string; name: string; description: string; duration: number; price: number; active: boolean; color: string };
+export type Staff = { id: string; name: string; email: string; title: string; serviceIds: string[]; active: boolean; color: string; schedule: ScheduleDay[]; daysOff: string[] };
+export type Booking = { id: string; customerId: string; serviceId: string; staffId: string; start: string; end: string; status: Status; price: number; serviceName: string; duration: number; notes: string; createdAt: string };
+export type Notification = { id: string; bookingId: string; recipientId: string; type: 'booking.created' | 'booking.rescheduled' | 'booking.status_changed'; channel: 'email'; delivery: 'queued'; createdAt: string; message: string };
+export type Settings = { name: string; email: string; phone: string; address: string; timezone: 'Asia/Taipei'; schedule: ScheduleDay[]; closedDates: string[] };
+export type Database = { version: 1; users: User[]; services: Service[]; staff: Staff[]; bookings: Booking[]; notifications: Notification[]; settings: Settings };
+export type BookingInput = { customerId: string; serviceId: string; staffId: string; date: string; time: string; notes: string };
+export type Page = 'Overview' | 'Calendar' | 'Appointments' | 'Customers' | 'Services' | 'Team' | 'Reports' | 'Settings' | 'My bookings' | 'My profile';

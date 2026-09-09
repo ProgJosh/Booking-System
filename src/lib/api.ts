@@ -1,0 +1,74 @@
+import type { BookingInput, Database, Role, Service, Settings, Staff, Status, User } from '../types';
+import { createSeed } from '../data/seed';
+import * as domain from './domain';
+import { emailSchema, profileSchema, registerSchema } from './validation';
+const DATA_KEY = 'morrow.database.v1';
+const SESSION_KEY = 'morrow.session.v1';
+export const DEMO_PASSWORD = 'Morrow2026!';
+export const DEMO_ACCOUNTS = { admin: 'admin@morrow.demo', staff: 'olivia@morrow.demo', customer: 'emma.thompson@example.com' };
+let queue: Promise<unknown> = Promise.resolve();
+let initializing: Promise<void> | undefined;
+function read(): Database { const raw = localStorage.getItem(DATA_KEY); if (!raw) throw new Error('Your workspace is still loading.'); const data = JSON.parse(raw) as Database; if (data.version !== 1 || !Array.isArray(data.bookings)) throw new Error('Stored workspace data is invalid. Restore your browser data or use a fresh browser profile.'); return data; }
+function write(db: Database) { try { localStorage.setItem(DATA_KEY, JSON.stringify(db)); } catch { throw new Error('Unable to save. Your browser storage may be full or disabled.'); } }
+async function passwordDigest(password: string, salt: string) { const encoder = new TextEncoder(); const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']); const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: encoder.encode(salt), iterations: 100000, hash: 'SHA-256' }, key, 256); return Array.from(new Uint8Array(bits), n => n.toString(16).padStart(2, '0')).join(''); }
+async function credentials(password: string) { const salt = crypto.randomUUID(); return { salt, passwordHash: await passwordDigest(password, salt) }; }
+function actor(db: Database) { const id = localStorage.getItem(SESSION_KEY); const user = db.users.find(u => u.id === id); if (!user) throw new Error('Please sign in to continue.'); if (user.role === 'staff' && !db.staff.some(s => s.id === user.staffId && s.active)) throw new Error('Your staff account is inactive.'); return user; }
+function emit() { window.dispatchEvent(new Event('morrow:update')); }
+async function transaction<T>(operation: (db: Database, user: User) => T | Promise<T>): Promise<T> {
+  const run = async () => { const db = read(); const user = actor(db); const result = await operation(db, user); write(db); emit(); return result; };
+  if (typeof navigator !== 'undefined' && navigator.locks) return navigator.locks.request('morrow:database', run);
+  const result = queue.then(run, run); queue = result.catch(() => undefined); return result;
+}
+function visible(db: Database, user: User): Database {
+  const bookings = db.bookings.filter(b => domain.canAccess(user, b));
+  return { ...db, bookings, users: db.users.filter(u => user.role === 'admin' || u.id === user.id || (user.role === 'staff' && bookings.some(b => b.customerId === u.id))).map(({ passwordHash: _hash, salt: _salt, ...u }) => u), notifications: db.notifications.filter(n => user.role === 'admin' || bookings.some(b => b.id === n.bookingId)) };
+}
+export const api = {
+  async initialize() {
+    if (!initializing) initializing = (async () => {
+      if (!localStorage.getItem(DATA_KEY)) {
+        const db = createSeed();
+        // Demo-only shared password hash. Newly created accounts use unique salts.
+        const credential = await credentials(DEMO_PASSWORD);
+        db.users.forEach(u => Object.assign(u, credential));
+        write(db); localStorage.setItem(SESSION_KEY, 'admin-1');
+      }
+      read();
+    })().catch(error => { initializing = undefined; throw error; });
+    return initializing;
+  },
+  snapshot() { const db = read(); try { const user = actor(db); return { db: visible(db, user), user: { ...user, passwordHash: undefined, salt: undefined } }; } catch { return { db: null, user: null }; } },
+  async login(email: string, password: string) {
+    const db = read(); const user = db.users.find(u => u.email === email.trim().toLowerCase());
+    if (!user?.salt || !user.passwordHash || await passwordDigest(password, user.salt) !== user.passwordHash) throw new Error('Email or password is incorrect.');
+    if (user.role === 'staff' && !db.staff.find(s => s.id === user.staffId)?.active) throw new Error('Your staff account is inactive. Contact your administrator.');
+    localStorage.setItem(SESSION_KEY, user.id); emit();
+  },
+  logout() { localStorage.setItem(SESSION_KEY, ''); emit(); },
+  async register(input: { name: string; email: string; phone: string; password: string }) {
+    const parsed = registerSchema.parse(input); const credential = await credentials(parsed.password);
+    const run = () => { const db = read(); if (db.users.some(u => u.email === parsed.email)) throw new Error('An account with this email already exists.'); const user: User = { id: crypto.randomUUID(), name: parsed.name, email: parsed.email, phone: parsed.phone, role: 'customer', ...credential }; db.users.push(user); write(db); localStorage.setItem(SESSION_KEY, user.id); emit(); };
+    if (navigator.locks) await navigator.locks.request('morrow:database', run); else { const result = queue.then(run, run); queue = result.catch(() => undefined); await result; }
+  },
+  slots(input: Omit<BookingInput, 'time' | 'notes'>, excludeId?: string) { const db = read(); const user = actor(db); if (user.role === 'customer' && input.customerId !== user.id) return []; return domain.availableSlots(db, input, new Date(), excludeId); },
+  book(input: BookingInput) { return transaction((db, user) => domain.createBooking(db, user, input)); },
+  reschedule(id: string, input: BookingInput) { return transaction((db, user) => domain.rescheduleBooking(db, user, id, input)); },
+  status(id: string, status: Status) { return transaction((db, user) => domain.changeStatus(db, user, id, status)); },
+  saveService(input: Service) { return transaction((db, user) => domain.saveService(db, user, input)); },
+  saveStaff(input: Staff, password?: string) { return transaction(async (db, user) => { const isNew = !db.staff.some(s => s.id === input.id); if (isNew && (!password || password.length < 8)) throw new Error('Set an initial staff password with at least 8 characters.'); domain.saveStaff(db, user, input); if (isNew) { const account = db.users.find(u => u.email === input.email.toLowerCase())!; Object.assign(account, await credentials(password!)); } }); },
+  saveSettings(input: Settings) { return transaction((db, user) => domain.saveSettings(db, user, input)); },
+  saveCustomer(input: { id?: string; name: string; email: string; phone: string; notes?: string; password?: string }) { return transaction(async (db, user) => {
+    domain.requireAdmin(user); const parsed = profileSchema.parse(input);
+    if (db.users.some(u => u.email === parsed.email && u.id !== input.id)) throw new Error('This email is already in use.');
+    if (input.id) { const target = db.users.find(u => u.id === input.id && u.role === 'customer'); if (!target) throw new Error('Customer not found.'); Object.assign(target, parsed, { notes: input.notes?.slice(0, 1000) || '' }); }
+    else { registerSchema.parse({ ...parsed, password: input.password }); db.users.push({ ...parsed, id: crypto.randomUUID(), role: 'customer', notes: input.notes || '', ...await credentials(input.password!) }); }
+  }); },
+  saveProfile(input: { name: string; email: string; phone: string; currentPassword?: string; password?: string }) { return transaction(async (db, user) => {
+    const parsed = profileSchema.parse(input); emailSchema.parse(parsed.email);
+    if (db.users.some(u => u.email === parsed.email && u.id !== user.id)) throw new Error('This email is already in use.');
+    if (input.password) { if (input.password.length < 8) throw new Error('Use at least 8 characters for your new password.'); if (!user.salt || await passwordDigest(input.currentPassword || '', user.salt) !== user.passwordHash) throw new Error('Your current password is incorrect.'); Object.assign(user, await credentials(input.password)); }
+    Object.assign(user, parsed); const provider = db.staff.find(s => s.id === user.staffId); if (provider) Object.assign(provider, { name: parsed.name, email: parsed.email });
+  }); },
+};
+export type Session = ReturnType<typeof api.snapshot>;
+export function roleLabel(role: Role) { return role === 'admin' ? 'Administrator' : role === 'staff' ? 'Team member' : 'Customer'; }
