@@ -16,8 +16,8 @@ function fitsSchedule(db: Database, staff: Staff, start: string, end: string) {
 }
 export function validateBooking(db: Database, input: BookingInput, now = new Date(), excludeId?: string) {
   const data = bookingSchema.parse(input);
-  const catalogService = db.services.find(s => s.id === data.serviceId && s.active);
   const original = excludeId ? db.bookings.find(b => b.id === excludeId && b.serviceId === data.serviceId) : undefined;
+  const catalogService = db.services.find(s => s.id === data.serviceId && (s.active || Boolean(original)));
   const service = catalogService && original ? { ...catalogService, duration: original.duration, price: original.price } : catalogService;
   const provider = db.staff.find(s => s.id === data.staffId && s.active);
   if (!db.users.some(u => u.id === data.customerId && u.role === 'customer')) throw new Error('Select a valid customer.');
@@ -71,7 +71,7 @@ export function saveService(db: Database, actor: User, input: Service) {
   if (existing) Object.assign(existing, service); else db.services.push({ ...service, id: crypto.randomUUID() });
 }
 export function saveStaff(db: Database, actor: User, input: Staff, now = new Date()) {
-  requireAdmin(actor); nameSchema.parse(input.name); emailSchema.parse(input.email); nameSchema.parse(input.title); validateSchedule(input.schedule); input.daysOff.forEach(d => dateSchema.parse(d));
+  requireAdmin(actor); input = { ...input, name: nameSchema.parse(input.name), email: emailSchema.parse(input.email), title: nameSchema.parse(input.title) }; validateSchedule(input.schedule); input.daysOff.forEach(d => dateSchema.parse(d));
   if (!input.serviceIds.length || input.serviceIds.some(id => !db.services.some(s => s.id === id))) throw new Error('Assign at least one valid service.');
   if (db.users.some(u => u.email.toLowerCase() === input.email.toLowerCase() && u.staffId !== input.id) || db.staff.some(s => s.id !== input.id && s.email.toLowerCase() === input.email.toLowerCase())) throw new Error('This email is already in use.');
   const future = db.bookings.filter(b => b.staffId === input.id && ['Pending', 'Confirmed'].includes(b.status) && Date.parse(b.end) > now.getTime());
@@ -81,9 +81,8 @@ export function saveStaff(db: Database, actor: User, input: Staff, now = new Dat
   else { const id = crypto.randomUUID(); db.staff.push({ ...input, id }); db.users.push({ id: crypto.randomUUID(), name: input.name, email: input.email.toLowerCase(), phone: '+886 900 000 000', role: 'staff', staffId: id }); }
 }
 export function saveSettings(db: Database, actor: User, input: Settings, now = new Date()) {
-  requireAdmin(actor); nameSchema.parse(input.name); emailSchema.parse(input.email); phoneSchema.parse(input.phone); nameSchema.parse(input.address); validateSchedule(input.schedule); input.closedDates.forEach(d => dateSchema.parse(d));
+  requireAdmin(actor); input = { ...input, name: nameSchema.parse(input.name), email: emailSchema.parse(input.email), phone: phoneSchema.parse(input.phone), address: nameSchema.parse(input.address) }; validateSchedule(input.schedule); input.closedDates.forEach(d => dateSchema.parse(d));
   const candidate = { ...db, settings: input };
   if (db.bookings.some(b => ['Pending', 'Confirmed'].includes(b.status) && Date.parse(b.end) > now.getTime() && !fitsSchedule(candidate, db.staff.find(s => s.id === b.staffId)!, b.start, b.end))) throw new Error('These hours or closures conflict with upcoming appointments. Reschedule or cancel them first.');
   db.settings = { ...input, timezone: 'Asia/Taipei' };
 }
-

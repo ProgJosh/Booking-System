@@ -19,7 +19,7 @@ export function createSeed(now = new Date()): Database {
   ];
   const names = ['Emma Thompson', 'Liam Anderson', 'Isabella Martinez', 'Noah Williams', 'Ava Robinson', 'Ethan Davis', 'Mia Johnson', 'Lucas Brown', 'Charlotte Taylor', 'Oliver Garcia', 'Amelia White', 'Henry Clark', 'Grace Lewis', 'Benjamin Hall', 'Ella Young', 'Jack Walker'];
   const users: Database['users'] = [
-    { id: 'admin-1', name: 'Alex Morgan', email: 'admin@morrow.demo', phone: '+886 912 345 678', role: 'admin' },
+    { id: 'admin-1', name: 'Emmanuel Josh Velo', email: 'admin@BookSync.demo', phone: '+886 912 345 678', role: 'admin' },
     ...staff.map(s => ({ id: `user-${s.id}`, name: s.name, email: s.email, phone: '+886 912 111 222', role: 'staff' as const, staffId: s.id })),
     ...names.map((name, i) => ({ id: `customer-${i + 1}`, name, email: `${name.toLowerCase().replace(' ', '.')}@example.com`, phone: `+886 912 340 ${String(100 + i)}`, role: 'customer' as const, notes: '' })),
   ];
@@ -39,5 +39,5 @@ export function createSeed(now = new Date()): Database {
       bookings.push({ id: `MR-${1200 + bookings.length}`, customerId: `customer-${((n * 3 + Math.abs(offset)) % names.length) + 1}`, serviceId: service.id, serviceName: service.name, staffId: provider.id, start: start.toISOString(), end: end.toISOString(), duration: service.duration, price: service.price, status, notes: n === 0 ? 'Prefers a quiet room.' : '', createdAt: new Date(start.getTime() - 86400000 * 3).toISOString() });
     }
   }
-  return { version: 1, users, services, staff, bookings, notifications: [], settings: { name: 'Morrow Wellness Studio', email: 'hello@morrow.demo', phone: '+886 2 2700 1234', address: '28 Lane 160, Dunhua South Road, Taipei', timezone: 'Asia/Taipei', schedule: defaultSchedule(), closedDates: [] } };
+  return { version: 1, users, services, staff, bookings, notifications: [], settings: { name: 'BookSync Wellness Studio', email: 'hello@morrow.demo', phone: '+886 2 2700 1234', address: '28 Lane 160, Dunhua South Road, Taipei', timezone: 'Asia/Taipei', schedule: defaultSchedule(), closedDates: [] } };
 }

@@ -5,7 +5,7 @@ import { emailSchema, profileSchema, registerSchema } from './validation';
 const DATA_KEY = 'morrow.database.v1';
 const SESSION_KEY = 'morrow.session.v1';
 export const DEMO_PASSWORD = 'Morrow2026!';
-export const DEMO_ACCOUNTS = { admin: 'admin@morrow.demo', staff: 'olivia@morrow.demo', customer: 'emma.thompson@example.com' };
+export const DEMO_ACCOUNTS = { admin: 'admin@BookSync.demo', staff: 'olivia@morrow.demo', customer: 'emma.thompson@example.com' };
 let queue: Promise<unknown> = Promise.resolve();
 let initializing: Promise<void> | undefined;
 function read(): Database { const raw = localStorage.getItem(DATA_KEY); if (!raw) throw new Error('Your workspace is still loading.'); const data = JSON.parse(raw) as Database; if (data.version !== 1 || !Array.isArray(data.bookings)) throw new Error('Stored workspace data is invalid. Restore your browser data or use a fresh browser profile.'); return data; }
@@ -14,10 +14,22 @@ async function passwordDigest(password: string, salt: string) { const encoder = 
 async function credentials(password: string) { const salt = crypto.randomUUID(); return { salt, passwordHash: await passwordDigest(password, salt) }; }
 function actor(db: Database) { const id = localStorage.getItem(SESSION_KEY); const user = db.users.find(u => u.id === id); if (!user) throw new Error('Please sign in to continue.'); if (user.role === 'staff' && !db.staff.some(s => s.id === user.staffId && s.active)) throw new Error('Your staff account is inactive.'); return user; }
 function emit() { window.dispatchEvent(new Event('morrow:update')); }
+async function withDatabaseLock<T>(operation: () => T | Promise<T>): Promise<T> {
+  if (typeof navigator !== 'undefined' && navigator.locks) return navigator.locks.request('morrow:database', operation);
+  const result = queue.then(operation, operation);
+  queue = result.catch(() => undefined);
+  return result;
+}
 async function transaction<T>(operation: (db: Database, user: User) => T | Promise<T>): Promise<T> {
-  const run = async () => { const db = read(); const user = actor(db); const result = await operation(db, user); write(db); emit(); return result; };
-  if (typeof navigator !== 'undefined' && navigator.locks) return navigator.locks.request('morrow:database', run);
-  const result = queue.then(run, run); queue = result.catch(() => undefined); return result;
+  return withDatabaseLock(async () => {
+    // Read again while holding the lock; a different tab may have just booked this slot.
+    const db = read();
+    const user = actor(db);
+    const result = await operation(db, user);
+    write(db);
+    emit();
+    return result;
+  });
 }
 function visible(db: Database, user: User): Database {
   const bookings = db.bookings.filter(b => domain.canAccess(user, b));
@@ -25,7 +37,7 @@ function visible(db: Database, user: User): Database {
 }
 export const api = {
   async initialize() {
-    if (!initializing) initializing = (async () => {
+    if (!initializing) initializing = withDatabaseLock(async () => {
       if (!localStorage.getItem(DATA_KEY)) {
         const db = createSeed();
         // Demo-only shared password hash. Newly created accounts use unique salts.
@@ -34,12 +46,12 @@ export const api = {
         write(db); localStorage.setItem(SESSION_KEY, 'admin-1');
       }
       read();
-    })().catch(error => { initializing = undefined; throw error; });
+    }).catch(error => { initializing = undefined; throw error; });
     return initializing;
   },
   snapshot() { const db = read(); try { const user = actor(db); return { db: visible(db, user), user: { ...user, passwordHash: undefined, salt: undefined } }; } catch { return { db: null, user: null }; } },
   async login(email: string, password: string) {
-    const db = read(); const user = db.users.find(u => u.email === email.trim().toLowerCase());
+    const db = read(); const normalizedEmail = email.trim().toLowerCase(); const user = db.users.find(u => u.email.trim().toLowerCase() === normalizedEmail);
     if (!user?.salt || !user.passwordHash || await passwordDigest(password, user.salt) !== user.passwordHash) throw new Error('Email or password is incorrect.');
     if (user.role === 'staff' && !db.staff.find(s => s.id === user.staffId)?.active) throw new Error('Your staff account is inactive. Contact your administrator.');
     localStorage.setItem(SESSION_KEY, user.id); emit();
@@ -48,14 +60,14 @@ export const api = {
   async register(input: { name: string; email: string; phone: string; password: string }) {
     const parsed = registerSchema.parse(input); const credential = await credentials(parsed.password);
     const run = () => { const db = read(); if (db.users.some(u => u.email === parsed.email)) throw new Error('An account with this email already exists.'); const user: User = { id: crypto.randomUUID(), name: parsed.name, email: parsed.email, phone: parsed.phone, role: 'customer', ...credential }; db.users.push(user); write(db); localStorage.setItem(SESSION_KEY, user.id); emit(); };
-    if (navigator.locks) await navigator.locks.request('morrow:database', run); else { const result = queue.then(run, run); queue = result.catch(() => undefined); await result; }
+    await withDatabaseLock(run);
   },
-  slots(input: Omit<BookingInput, 'time' | 'notes'>, excludeId?: string) { const db = read(); const user = actor(db); if (user.role === 'customer' && input.customerId !== user.id) return []; return domain.availableSlots(db, input, new Date(), excludeId); },
+  slots(input: Omit<BookingInput, 'time' | 'notes'>, excludeId?: string) { const db = read(); const user = actor(db); if (user.role === 'customer' && input.customerId !== user.id) return []; if (user.role === 'staff' && input.staffId !== user.staffId) return []; if (excludeId) { const booking = db.bookings.find(b => b.id === excludeId); if (!booking || !domain.canAccess(user, booking) || booking.customerId !== input.customerId || booking.serviceId !== input.serviceId) return []; } return domain.availableSlots(db, input, new Date(), excludeId); },
   book(input: BookingInput) { return transaction((db, user) => domain.createBooking(db, user, input)); },
   reschedule(id: string, input: BookingInput) { return transaction((db, user) => domain.rescheduleBooking(db, user, id, input)); },
   status(id: string, status: Status) { return transaction((db, user) => domain.changeStatus(db, user, id, status)); },
   saveService(input: Service) { return transaction((db, user) => domain.saveService(db, user, input)); },
-  saveStaff(input: Staff, password?: string) { return transaction(async (db, user) => { const isNew = !db.staff.some(s => s.id === input.id); if (isNew && (!password || password.length < 8)) throw new Error('Set an initial staff password with at least 8 characters.'); domain.saveStaff(db, user, input); if (isNew) { const account = db.users.find(u => u.email === input.email.toLowerCase())!; Object.assign(account, await credentials(password!)); } }); },
+  saveStaff(input: Staff, password?: string) { return transaction(async (db, user) => { const isNew = !db.staff.some(s => s.id === input.id); if (isNew && (!password || password.length < 8)) throw new Error('Set an initial staff password with at least 8 characters.'); domain.saveStaff(db, user, input); if (isNew) { const account = db.users.find(u => u.email === emailSchema.parse(input.email))!; Object.assign(account, await credentials(password!)); } }); },
   saveSettings(input: Settings) { return transaction((db, user) => domain.saveSettings(db, user, input)); },
   saveCustomer(input: { id?: string; name: string; email: string; phone: string; notes?: string; password?: string }) { return transaction(async (db, user) => {
     domain.requireAdmin(user); const parsed = profileSchema.parse(input);

@@ -20,3 +20,95 @@
 @media(max-width:760px){.sidebar{transform:translateX(-100%);transition:transform .2s ease;width:228px}.sidebar.open{transform:translateX(0)}.main-shell{margin-left:0}.mobile-menu{display:inline-flex;margin-left:-6px}.mobile-overlay{position:fixed;inset:0;background:#20342660;z-index:29;backdrop-filter:blur(2px)}.topbar{height:62px;padding:0 20px}.topbar-title{gap:10px;font-size:10px}.topbar-actions{gap:7px}.header-divider{display:none}.header-avatar>svg{display:none}.main-content{padding:23px 20px 0}.workspace-context{margin-bottom:20px}.page-heading{gap:14px}.page-heading h1{font-size:26px}.heading-copy h1{font-size:25px}.page-heading p{font-size:10px;max-width:340px}.page-heading .button-group{flex-shrink:0}.greeting-dot{font-size:23px}.day-banner strong{font-size:11px}.day-banner p{font-size:10px}.stat-card{padding:18px}.stat-top{font-size:10px}.stat-value{font-size:28px}.dashboard-charts{gap:19px}.chart-legend{font-size:9px;gap:13px}.chart-summary>strong{font-size:24px}.chart-summary{gap:15px}.services-grid{gap:15px}.service-card{padding:18px}.service-card h2{font-size:15px}.service-card p{font-size:10px}.service-card-meta{flex-wrap:wrap}.team-grid{gap:15px}.profile-panel{padding:23px}.customer-summary{padding:17px;gap:22px}.customer-summary>span{font-size:10px;gap:8px}.customer-summary strong{font-size:23px}.customer-booking-card{gap:13px}.customer-booking-card>strong{font-size:12px;margin-left:0}.booking-card-copy h3{font-size:12px}.booking-card-copy p{font-size:9px}.booking-card-copy small{font-size:8px}.booking-date-block{width:46px}.customer-booking-card>svg{display:none}.auth-layout{grid-template-columns:1fr}.auth-story{padding:27px 30px}.auth-story .brand{font-size:28px}.auth-story-copy{padding:32px 0 9px;margin:0}.auth-story .eyebrow{font-size:8px}.auth-story h1{font-size:35px;margin:14px 0;line-height:1.15}.auth-story-copy>p{font-size:11px;max-width:400px;margin-top:12px}.auth-benefits,.auth-note,.auth-footer{display:none}.auth-form-area{padding:65px 26px 70px}.auth-form{margin:0;max-width:420px}.auth-form>h2{font-size:26px}.demo-label{top:22px;right:26px}.auth-copyright{bottom:21px}.workspace-footer{padding-top:27px}.sidebar .brand{font-size:30px}.sidebar nav>button{font-size:12px;padding:11px 13px}.sidebar-note{display:none}.sidebar-user strong{max-width:125px}.studio-select{margin-top:27px}.studio-select strong{font-size:11px}.studio-select small{font-size:9px}}
 @media(max-width:500px){.main-content{padding:20px 15px 0}.topbar{padding:0 15px}.topbar-title>span:first-of-type,.breadcrumb-slash{display:none}.page-heading{align-items:flex-start;flex-direction:column;gap:17px;margin-bottom:20px}.page-heading>.btn,.page-heading>.button-group{align-self:stretch}.page-heading>.btn{width:100%}.page-heading .button-group>.btn.primary{flex:1}.page-heading h1{font-size:26px}.page-heading p{font-size:11px}.day-banner{padding:14px 12px;align-items:flex-start}.banner-icon{margin-top:3px}.day-banner strong{font-size:10px}.day-banner p{font-size:9px;line-height:1.8}.day-banner>button{margin-top:11px}.stat-grid{gap:10px;margin-bottom:20px}.stat-card{padding:14px 12px}.stat-top{font-size:9px}.stat-icon{width:24px;height:24px}.stat-icon svg{width:15px}.stat-value{font-size:27px;margin:8px 0}.stat-value svg{width:42px}.stat-card>small{font-size:8px}.panel-heading{padding:18px 16px 0}.panel-heading h2{font-size:13px}.panel-heading p{font-size:9px}.chart-summary{padding:15px 16px 0;flex-wrap:wrap;gap:8px}.chart-legend{font-size:8px;margin-left:auto;gap:7px}.chart-summary>strong>span{font-size:8px}.bar-chart{margin:17px 16px 0;gap:9px}.chart-footer{padding:13px 16px;font-size:7px}.service-ranking{padding:20px 16px;grid-template-columns:1fr;gap:20px}.ranking-row strong{font-size:11px}.ranking-row>div>div:first-child{font-size:11px}.ranking-row small{font-size:9px}.panel-bottom-action{font-size:10px}.workspace-footer{font-size:7px;gap:10px}.services-grid{grid-template-columns:1fr}.service-card{padding:22px}.service-card h2{font-size:18px}.service-card p{font-size:12px}.service-card-meta>span{font-size:11px}.service-card-meta small{font-size:9px}.service-card-bottom>span{font-size:10px}.team-grid{grid-template-columns:1fr}.team-card-content{padding:0 23px 22px}.team-card h2{font-size:19px}.team-card-content>p{font-size:12px}.team-email{font-size:11px}.staff-service-tags>span{font-size:10px}.staff-service-tags{min-height:0}.team-metrics{margin-top:20px}.team-metrics span{font-size:10px}.team-card .btn{font-size:11px}.standalone-toolbar .search-input{width:100%}.standalone-toolbar>.muted{white-space:nowrap;font-size:10px}.appointment-toolbar{gap:9px}.appointment-toolbar>.search-input{flex-basis:100%}.appointment-toolbar>.btn{font-size:10px;padding:7px 10px;min-height:34px}.view-switch{margin-left:auto}.segmented button{padding:6px 10px;font-size:9px}.calendar-toolbar{gap:12px}.date-navigator{width:100%;justify-content:space-between}.date-navigator input{width:132px}.calendar-toolbar>.segmented{width:100%;display:flex}.calendar-toolbar>.segmented button{flex:1;padding:8px}.pagination{font-size:9px;padding:12px 14px}.pagination>div{gap:5px}.pagination .icon-btn{width:26px}.filter-row label{min-width:120px}.customer-summary{flex-direction:column;align-items:flex-start;gap:13px}.customer-summary>span{font-size:11px}.customer-bookings{padding:0 14px}.customer-booking-card{flex-wrap:wrap;gap:12px;padding:19px 0}.booking-card-copy{min-width:calc(100% - 70px)}.customer-booking-card .badge{margin-left:58px}.customer-booking-card>strong{margin-left:auto}.booking-card-copy p{font-size:10px}.customer-booking-card .badge{font-size:9px}.report-toolbar{gap:12px}.report-toolbar>.muted{font-size:9px}.report-toolbar .date-navigator{width:auto}.report-toolbar .date-navigator input{width:112px;font-size:9px}.report-toolbar .date-navigator .icon-btn{width:23px}.report-toolbar .date-navigator .text-btn{margin-left:0;font-size:9px}.report-toolbar>.segmented{width:100%}.report-toolbar>.segmented button{flex:1;padding:9px}.revenue-chart{gap:3px;margin-left:16px;margin-right:16px}.settings-panel{padding:20px 17px}.schedule-row{gap:7px}.schedule-row>label{min-width:98px;font-size:10px}.schedule-row>input{width:90px;padding:6px 4px;font-size:10px}.form-two{grid-template-columns:1fr;gap:0}.settings-layout{gap:18px}.profile-panel{padding:21px}.modal-overlay{padding:10px;align-items:center}.modal{max-height:95dvh;border-radius:10px}.modal-heading{padding:21px 19px 18px}.modal-heading h2{font-size:19px}.modal-heading p{font-size:10px}.modal-body{padding:20px 18px}.modal-footer{padding:15px 18px}.modal-footer>.btn{font-size:10px;padding:10px 12px}.modal-footer>.text-btn{font-size:10px}.booking-steps{padding:16px 18px;gap:7px}.booking-steps>div{font-size:8px;gap:5px}.booking-steps>div>span{width:19px;height:19px;font-size:9px}.service-options{gap:10px}.service-option{padding:13px 11px}.service-option>strong{font-size:11px;line-height:1.5}.service-option>p{font-size:9px}.service-option>div{font-size:9px}.service-option>div b{font-size:11px}.selected-check{right:10px;top:14px;width:16px}.time-slots{grid-template-columns:repeat(3,minmax(0,1fr))}.time-slots button{font-size:11px;padding:11px 5px}.review-grid{gap:19px 13px;padding:17px}.review-grid strong{font-size:11px}.review-grid span{font-size:9px}.booking-success{padding:23px 19px}.confirmation-card{padding:20px}.detail-title{flex-wrap:wrap}.detail-time{padding:14px}.detail-time strong{font-size:11px}.detail-time p{font-size:10px}.cancel-confirm>div{flex-direction:column}.service-checkboxes{grid-template-columns:1fr}.toast{width:max-content;max-width:calc(100vw - 24px);font-size:11px;bottom:15px}.form-hint{font-size:10px}.auth-story h1{font-size:33px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* Keep the complete navigation reachable on shorter screens. */
+.sidebar { overflow-y: auto; }
+.sidebar > .brand, .sidebar > .studio-select, .sidebar > nav { flex-shrink: 0; }
+@media(max-height: 800px) and (min-width: 761px) { .sidebar-note { display: none; } }
+@media(max-width: 500px) { .schedule-row > label { min-width: 90px; } .schedule-row > input { flex: 1; min-width: 0; } }
+
+/* Keep the account controls inside the sidebar at every width. */
+.sidebar-user { min-width: 0; overflow: hidden; }
+.sidebar-user > button:first-child { min-width: 0; overflow: hidden; }
+.sidebar-user > button:first-child > span { min-width: 0; overflow: hidden; }
+.sidebar-user strong { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user > .icon-btn { margin-left: auto; }
+
+/* Give the expanded BookSync navigation enough room for its labels. */
+.sidebar { width: 260px; }
+.main-shell { margin-left: 260px; }
+@media (max-width: 1250px) and (min-width: 1001px) {
+  .sidebar { width: 230px; }
+  .main-shell { margin-left: 230px; }
+}
+@media (max-width: 1000px) and (min-width: 761px) {
+  .sidebar { width: 205px; }
+  .main-shell { margin-left: 205px; }
+}
+@media (max-width: 760px) {
+  .sidebar { width: 228px; }
+  .main-shell { margin-left: 0; }
+}
+
+/* Keep the sidebar brand compact without affecting the login-page logo. */
+.sidebar > .brand {
+  gap: 8px;
+  margin-left: 8px;
+  font-size: 27px;
+  letter-spacing: -1.2px;
+}
+.sidebar > .brand .logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+.sidebar > .brand .logo-mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Use the same uploaded artwork for the sidebar and login branding. */
+.logo-mark {
+  position: relative;
+  flex: 0 0 35px;
+  min-width: 35px;
+  max-width: 35px;
+  overflow: hidden;
+  background-color: transparent;
+  background-image: url('/website-icon.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 175%;
+  border-radius: 0;
+}
+.logo-mark img {
+  display: none;
+}
+.auth-story .logo-mark { background: transparent; }
+.auth-story .logo-mark {
+  background-image: url('/website-icon.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 175%;
+}
+.logo-mark.small {
+  flex-basis: 28px;
+  min-width: 28px;
+  max-width: 28px;
+}
+.sidebar {
+  overflow-x: hidden;
+}
+.sidebar > .brand {
+  min-width: 0;
+  overflow: hidden;
+}
+.sidebar > .brand > span:last-child {
+  min-width: 0;
+  white-space: nowrap;
+}
+.sidebar > .brand .logo-mark {
+  flex-basis: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  border-radius: 0;
+}
