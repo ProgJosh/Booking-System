@@ -12,16 +12,17 @@ export function createSeed(now = new Date()): Database {
     { id: 'svc-6', name: 'Scalp & Head Ritual', description: 'A calming scalp massage and aromatherapy ritual to clear the mind.', duration: 30, price: 55, active: true, color: 'rose' },
   ];
   const staff = [
-    { id: 'staff-1', name: 'Olivia Chen', email: 'olivia@morrow.demo', title: 'Senior wellness therapist', serviceIds: ['svc-1', 'svc-3', 'svc-4', 'svc-6'], active: true, color: 'sage', schedule: defaultSchedule(), daysOff: [] },
-    { id: 'staff-2', name: 'James Wilson', email: 'james@morrow.demo', title: 'Bodywork specialist', serviceIds: ['svc-1', 'svc-3', 'svc-4', 'svc-5'], active: true, color: 'sand', schedule: defaultSchedule(), daysOff: [] },
-    { id: 'staff-3', name: 'Sophie Lee', email: 'sophie@morrow.demo', title: 'Skin & beauty specialist', serviceIds: ['svc-2', 'svc-3', 'svc-6'], active: true, color: 'peach', schedule: defaultSchedule(), daysOff: [] },
-    { id: 'staff-4', name: 'Daniel Park', email: 'daniel@morrow.demo', title: 'Movement & wellness coach', serviceIds: ['svc-1', 'svc-3', 'svc-5'], active: true, color: 'lavender', schedule: defaultSchedule(), daysOff: [] },
+    { id: 'staff-1', name: 'Olivia Chen', email: 'olivia@Wellora.demo', title: 'Senior wellness therapist', serviceIds: ['svc-1', 'svc-3', 'svc-4', 'svc-6'], active: true, color: 'sage', schedule: defaultSchedule(), daysOff: [] },
+    { id: 'staff-2', name: 'James Wilson', email: 'james@Wellora.demo', title: 'Bodywork specialist', serviceIds: ['svc-1', 'svc-3', 'svc-4', 'svc-5'], active: true, color: 'sand', schedule: defaultSchedule(), daysOff: [] },
+    { id: 'staff-3', name: 'Sophie Lee', email: 'sophie@Wellora.demo', title: 'Skin & beauty specialist', serviceIds: ['svc-2', 'svc-3', 'svc-6'], active: true, color: 'peach', schedule: defaultSchedule(), daysOff: [] },
+    { id: 'staff-4', name: 'Daniel Park', email: 'daniel@Wellora.demo', title: 'Movement & wellness coach', serviceIds: ['svc-1', 'svc-3', 'svc-5'], active: true, color: 'lavender', schedule: defaultSchedule(), daysOff: [] },
+    { id: 'staff-emmanuel', name: 'Emmanuel Josh Velo', email: 'emmanuel.staff@Wellora.demo', title: 'Wellness specialist', serviceIds: ['svc-1', 'svc-2', 'svc-3', 'svc-4', 'svc-5', 'svc-6'], active: true, color: 'blue', schedule: defaultSchedule(), daysOff: [] },
   ];
-  const names = ['Emma Thompson', 'Liam Anderson', 'Isabella Martinez', 'Noah Williams', 'Ava Robinson', 'Ethan Davis', 'Mia Johnson', 'Lucas Brown', 'Charlotte Taylor', 'Oliver Garcia', 'Amelia White', 'Henry Clark', 'Grace Lewis', 'Benjamin Hall', 'Ella Young', 'Jack Walker'];
+  const names = ['Emmanuel Josh Velo', 'Liam Anderson', 'Isabella Martinez', 'Noah Williams', 'Ava Robinson', 'Ethan Davis', 'Mia Johnson', 'Lucas Brown', 'Charlotte Taylor', 'Oliver Garcia', 'Amelia White', 'Henry Clark', 'Grace Lewis', 'Benjamin Hall', 'Ella Young', 'Jack Walker'];
   const users: Database['users'] = [
     { id: 'admin-1', name: 'Emmanuel Josh Velo', email: 'admin@BookSync.demo', phone: '+886 912 345 678', role: 'admin' },
     ...staff.map(s => ({ id: `user-${s.id}`, name: s.name, email: s.email, phone: '+886 912 111 222', role: 'staff' as const, staffId: s.id })),
-    ...names.map((name, i) => ({ id: `customer-${i + 1}`, name, email: `${name.toLowerCase().replace(' ', '.')}@example.com`, phone: `+886 912 340 ${String(100 + i)}`, role: 'customer' as const, notes: '' })),
+    ...names.map((name, i) => ({ id: `customer-${i + 1}`, name, email: `${name.toLowerCase().replace(/ /g, '.')}@example.com`, phone: `+886 912 340 ${String(100 + i)}`, role: 'customer' as const, notes: '' })),
   ];
   const bookings: Database['bookings'] = [];
   for (let offset = -42; offset <= 12; offset++) {
@@ -36,8 +37,8 @@ export function createSeed(now = new Date()): Database {
       if (weekday(day) === 6 && hour >= 15) continue;
       const past = end.getTime() < now.getTime();
       const status = past ? (n === 2 && Math.abs(offset) % 5 === 0 ? 'Cancelled' : n === 3 && Math.abs(offset) % 7 === 0 ? 'No-show' : 'Completed') : n % 4 === 2 ? 'Pending' : 'Confirmed';
-      bookings.push({ id: `MR-${1200 + bookings.length}`, customerId: `customer-${((n * 3 + Math.abs(offset)) % names.length) + 1}`, serviceId: service.id, serviceName: service.name, staffId: provider.id, start: start.toISOString(), end: end.toISOString(), duration: service.duration, price: service.price, status, notes: n === 0 ? 'Prefers a quiet room.' : '', createdAt: new Date(start.getTime() - 86400000 * 3).toISOString() });
+      bookings.push({ id: `MR-${1200 + bookings.length}`, customerId: `customer-${((n * 3 + Math.abs(offset)) % names.length) + 1}`, serviceId: service.id, serviceName: service.name, staffId: provider.id, start: start.toISOString(), end: end.toISOString(), duration: service.duration, price: service.price, status, paymentMethod: (['GCash', 'Maya', 'MariBank Philippines', 'GoTyme Bank', 'UnionBank', 'Maya Bank', 'BPI Mobile App', 'Cash at studio'] as const)[(n + Math.abs(offset)) % 8], notes: n === 0 ? 'Prefers a quiet room.' : '', createdAt: new Date(start.getTime() - 86400000 * 3).toISOString() });
     }
   }
-  return { version: 1, users, services, staff, bookings, notifications: [], settings: { name: 'BookSync Wellness Studio', email: 'hello@morrow.demo', phone: '+886 2 2700 1234', address: '28 Lane 160, Dunhua South Road, Taipei', timezone: 'Asia/Taipei', schedule: defaultSchedule(), closedDates: [] } };
+  return { version: 1, users, services, staff, bookings, notifications: [], settings: { name: 'Wellness Studio', email: 'hello@Wellora.demo', phone: '+886 2 2700 1234', address: 'San Vicente, Lubao, Pampanga', timezone: 'Asia/Manila', schedule: defaultSchedule(), closedDates: [] } };
 }

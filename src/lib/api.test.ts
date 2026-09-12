@@ -24,6 +24,7 @@ function futureInput() {
     staffId: "staff-1",
     date,
     time: "10:00",
+    paymentMethod: "GCash" as const,
     notes: "",
   };
 }
@@ -78,8 +79,25 @@ describe("Local API integration", () => {
     expect(api.snapshot().user?.role).toBe("admin");
     expect(api.snapshot().user?.email).toBe("admin@BookSync.demo");
   });
+  it("signs in the seeded Emmanuel staff account", async () => {
+    await api.login("emmanuel.staff@wellora.demo", "Morrow2026!");
+    expect(api.snapshot().user).toMatchObject({
+      name: "Emmanuel Josh Velo",
+      role: "staff",
+      staffId: "staff-emmanuel",
+    });
+  });
+  it("migrates older appointments to a safe local payment default", async () => {
+    const stored = JSON.parse(memory.get("morrow.database.v1")!);
+    delete stored.bookings[0].paymentMethod;
+    memory.set("morrow.database.v1", JSON.stringify(stored));
+    vi.resetModules();
+    api = (await import("./api")).api;
+    await api.initialize();
+    expect(api.snapshot().db!.bookings[0].paymentMethod).toBe("Cash at studio");
+  });
   it("enforces customer visibility, ownership, and administrator permissions at the API boundary", async () => {
-    await api.login("emma.thompson@example.com", "Morrow2026!");
+    await api.login("emmanuel.josh.velo@example.com", "Morrow2026!");
     const snapshot = api.snapshot();
     expect(snapshot.db!.users.every((u) => u.id === snapshot.user!.id)).toBe(
       true,
@@ -135,7 +153,7 @@ describe("Local API integration", () => {
     const other = api
       .snapshot()
       .db!.bookings.find((b) => b.customerId !== "customer-1")!;
-    await api.login("emma.thompson@example.com", "Morrow2026!");
+    await api.login("emmanuel.josh.velo@example.com", "Morrow2026!");
     expect(api.slots(futureInput(), other.id)).toEqual([]);
     api.logout();
     await expect(api.book(futureInput())).rejects.toThrow(/sign in/);

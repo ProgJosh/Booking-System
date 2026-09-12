@@ -23,6 +23,13 @@
 /* Keep the complete navigation reachable on shorter screens. */
 .sidebar { overflow-y: auto; }
 .sidebar > .brand, .sidebar > .studio-select, .sidebar > nav { flex-shrink: 0; }
+
+/* Local payment preference */
+.payment-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}.payment-option{position:relative;display:flex;align-items:center;gap:10px;min-width:0;padding:13px 12px;border:1px solid #e1ead3;border-radius:7px;background:#fff;color:#8aa06f;text-align:left;white-space:normal}.payment-option:hover{border-color:#a4b98a;background:#fafcf6}.payment-option.selected{border-color:#78975d;background:#f3f8ea;box-shadow:0 0 0 1px #78975d}.payment-option>span:not(.payment-brand){display:flex;min-width:0;flex-direction:column;gap:4px}.payment-option strong{font-size:11px;font-weight:600;color:#627d4c}.payment-option small{font-size:9px;line-height:1.35;color:#99aa84}.payment-brand{width:45px;height:34px;flex:0 0 45px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;overflow:hidden;font-family:Arial,sans-serif}.payment-brand.gcash{gap:2px;background:#edf7ff;color:#087cf0}.payment-brand.gcash i{display:grid;place-items:center;width:20px;height:20px;border:2px solid #087cf0;border-radius:50%;font-size:11px;font-style:normal;font-weight:800}.payment-brand.gcash b{font-size:10px;letter-spacing:-.5px;color:#087cf0}.payment-brand.maya{background:#171a1b}.payment-brand.maya b{font-size:14px;font-weight:800;letter-spacing:-1px;color:#4ee88a}.payment-brand.maribank{background:#fff1e8}.payment-brand.maribank b{font-size:13px;font-weight:800;letter-spacing:-.8px;color:#f0662f}.payment-brand.gotyme{background:#eaf8ef;color:#1c4b43;font-size:10px;font-weight:700;letter-spacing:-.4px}.payment-brand.gotyme b{font-size:13px;color:#00a86b}.payment-brand.unionbank{background:#fff0e8;color:#e45c2d}.payment-brand.unionbank i{font-size:13px;font-style:normal;font-weight:900;letter-spacing:-.6px}.payment-brand.mayabank{flex-direction:column;gap:0;background:#171a1b;color:#4ee88a}.payment-brand.mayabank b{font-size:11px;line-height:1;font-weight:800;letter-spacing:-.7px;color:#4ee88a}.payment-brand.mayabank small{font-size:6px;line-height:1;margin-top:2px;letter-spacing:.7px;text-transform:uppercase;color:#fff}.payment-brand.bpi{background:#a71930;color:#fff;font-size:13px;font-weight:900;letter-spacing:.5px}.payment-brand.cash{background:#eef6e7;color:#618349}.payment-check{position:absolute;right:8px;top:8px;color:#719151;background:#f3f8ea}.payment-note{margin-bottom:21px}.detail-payment{display:flex;align-items:center;gap:13px;padding:15px 16px;border:1px solid #e5edd7;border-radius:7px;background:#fafcf5;color:#89a367;margin:20px 0}.detail-payment>div{display:flex;flex-direction:column;gap:5px}.detail-payment small{font-size:8px;letter-spacing:1px;color:#a2b18d}.detail-payment strong{font-size:12px;font-weight:600;color:#6b8551}.detail-payment span{font-size:10px;color:#96aa7b}
+
+@media(max-width:900px) and (min-width:501px){.payment-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+@media(max-width:500px){.payment-options{grid-template-columns:1fr}.payment-option{padding:12px}.payment-option strong{font-size:11px}.payment-option small{font-size:9px}}
 @media(max-height: 800px) and (min-width: 761px) { .sidebar-note { display: none; } }
 @media(max-width: 500px) { .schedule-row > label { min-width: 90px; } .schedule-row > input { flex: 1; min-width: 0; } }
 
@@ -111,4 +118,24 @@
   min-width: 32px;
   max-width: 32px;
   border-radius: 0;
+}
+.sidebar > .brand-logo {
+  display: block;
+  flex: 0 0 32px;
+  width: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  height: 32px;
+  object-fit: contain;
+  transform: scale(1.55);
+}
+.sidebar nav > button .nav-custom-icon {
+  display: block;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  background-color: currentColor;
+  -webkit-mask: url('/services-icon.png') center / contain no-repeat;
+  mask: url('/services-icon.png') center / contain no-repeat;
+  opacity: .92;
 }

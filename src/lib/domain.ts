@@ -31,9 +31,9 @@ export function validateBooking(db: Database, input: BookingInput, now = new Dat
   if (overlap) throw new Error(overlap.staffId === provider.id ? 'This provider is already booked at that time. Please choose another slot.' : 'This customer already has an overlapping appointment.');
   return { service, provider, start: start.toISOString(), end: end.toISOString() };
 }
-export function availableSlots(db: Database, input: Omit<BookingInput, 'time' | 'notes'>, now = new Date(), excludeId?: string) {
+export function availableSlots(db: Database, input: Omit<BookingInput, 'time' | 'notes' | 'paymentMethod'>, now = new Date(), excludeId?: string) {
   const slots: string[] = [];
-  for (let m = 0; m < 24 * 60; m += 15) { const time = clock(m); try { validateBooking(db, { ...input, time, notes: '' }, now, excludeId); slots.push(time); } catch { /* Unavailable slots are omitted. */ } }
+  for (let m = 0; m < 24 * 60; m += 15) { const time = clock(m); try { validateBooking(db, { ...input, time, paymentMethod: 'Cash at studio', notes: '' }, now, excludeId); slots.push(time); } catch { /* Unavailable slots are omitted. */ } }
   return slots;
 }
 function enqueue(db: Database, booking: Booking, type: Database['notifications'][number]['type']) { db.notifications.unshift({ id: crypto.randomUUID(), bookingId: booking.id, recipientId: booking.customerId, type, channel: 'email', delivery: 'queued', createdAt: new Date().toISOString(), message: `${booking.serviceName} · ${type === 'booking.rescheduled' ? 'Rescheduled' : booking.status}` }); }
@@ -41,7 +41,7 @@ export function createBooking(db: Database, actor: User, input: BookingInput, no
   if (actor.role === 'customer' && actor.id !== input.customerId) throw new Error('You can only book for yourself.');
   if (actor.role === 'staff' && actor.staffId !== input.staffId) throw new Error('Staff can only book their own appointments.');
   const { service, start, end } = validateBooking(db, input, now);
-  const booking: Booking = { id: `MR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`, customerId: input.customerId, serviceId: service.id, staffId: input.staffId, start, end, price: service.price, serviceName: service.name, duration: service.duration, status: actor.role === 'customer' ? 'Pending' : 'Confirmed', notes: input.notes.trim(), createdAt: now.toISOString() };
+  const booking: Booking = { id: `MR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`, customerId: input.customerId, serviceId: service.id, staffId: input.staffId, start, end, price: service.price, serviceName: service.name, duration: service.duration, status: actor.role === 'customer' ? 'Pending' : 'Confirmed', paymentMethod: input.paymentMethod, notes: input.notes.trim(), createdAt: now.toISOString() };
   db.bookings.push(booking); enqueue(db, booking, 'booking.created'); return booking;
 }
 export function rescheduleBooking(db: Database, actor: User, id: string, input: BookingInput, now = new Date()) {
@@ -51,7 +51,7 @@ export function rescheduleBooking(db: Database, actor: User, id: string, input: 
   if (input.customerId !== booking.customerId || input.serviceId !== booking.serviceId) throw new Error('Keep the original customer and service when rescheduling.');
   if (actor.role === 'staff' && actor.staffId !== input.staffId) throw new Error('Staff can only manage their own appointments.');
   const { start, end, service } = validateBooking(db, input, now, id);
-  Object.assign(booking, { start, end, staffId: input.staffId, notes: input.notes.trim(), duration: service.duration, status: actor.role === 'customer' ? 'Pending' : 'Confirmed' });
+  Object.assign(booking, { start, end, staffId: input.staffId, paymentMethod: input.paymentMethod, notes: input.notes.trim(), duration: service.duration, status: actor.role === 'customer' ? 'Pending' : 'Confirmed' });
   enqueue(db, booking, 'booking.rescheduled'); return booking;
 }
 export function changeStatus(db: Database, actor: User, id: string, status: Status, now = new Date()) {
@@ -84,5 +84,5 @@ export function saveSettings(db: Database, actor: User, input: Settings, now = n
   requireAdmin(actor); input = { ...input, name: nameSchema.parse(input.name), email: emailSchema.parse(input.email), phone: phoneSchema.parse(input.phone), address: nameSchema.parse(input.address) }; validateSchedule(input.schedule); input.closedDates.forEach(d => dateSchema.parse(d));
   const candidate = { ...db, settings: input };
   if (db.bookings.some(b => ['Pending', 'Confirmed'].includes(b.status) && Date.parse(b.end) > now.getTime() && !fitsSchedule(candidate, db.staff.find(s => s.id === b.staffId)!, b.start, b.end))) throw new Error('These hours or closures conflict with upcoming appointments. Reschedule or cancel them first.');
-  db.settings = { ...input, timezone: 'Asia/Taipei' };
+  db.settings = { ...input, timezone: 'Asia/Manila' };
 }

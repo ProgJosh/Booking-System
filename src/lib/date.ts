@@ -1,4 +1,4 @@
-export const TIMEZONE = 'Asia/Taipei';
+export const TIMEZONE = 'Asia/Manila';
 export const OFFSET = '+08:00';
 const dateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 const timeFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false });

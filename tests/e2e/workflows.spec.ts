@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function ready(page: Page) {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /Good (morning|afternoon), Alex/ }),
+    page.getByRole("heading", { name: /Good (morning|afternoon|evening), Emmanuel/ }),
   ).toBeVisible();
 }
 async function selectFutureDate(page: Page, days = 20) {
@@ -10,7 +10,7 @@ async function selectFutureDate(page: Page, days = 20) {
   d.setDate(d.getDate() + days);
   if (d.getDay() === 0) d.setDate(d.getDate() + 1);
   const key = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Taipei",
+    timeZone: "Asia/Manila",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -29,6 +29,7 @@ async function createAppointment(page: Page) {
   const date = await selectFutureDate(page);
   await dialog.getByRole("button", { name: "10:00 AM", exact: true }).click();
   await dialog.getByRole("button", { name: "Continue" }).click();
+  await dialog.getByRole("radio", { name: "Maya Use your Maya wallet", exact: true }).click();
   await dialog.getByLabel("Appointment notes").fill("Browser test appointment");
   await dialog
     .getByRole("button", { name: "Book appointment", exact: true })
@@ -36,6 +37,7 @@ async function createAppointment(page: Page) {
   await expect(
     page.getByRole("heading", { name: "It’s in the calendar." }),
   ).toBeVisible();
+  await expect(page.locator(".confirmation-card")).toContainText("Maya");
   const id = await page.locator(".confirmation-card .eyebrow").innerText();
   await page.getByRole("button", { name: "Done", exact: true }).click();
   return { id, date };
@@ -89,22 +91,27 @@ test("booking, rescheduling, persistence, cancellation and notification queue", 
   await ready(page);
   const { id } = await createAppointment(page);
   await findBooking(page, id);
+  await expect(page.getByRole("dialog")).toContainText("PAYMENT METHOD");
+  await expect(page.getByRole("dialog")).toContainText("Maya");
   await page.getByRole("button", { name: "Reschedule", exact: true }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "11:00 AM", exact: true })
     .click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("radio", { name: /GoTyme Bank/ }).click();
   await page.getByRole("button", { name: "Save new appointment time" }).click();
   await expect(
     page.getByRole("heading", { name: "Your new time is saved." }),
   ).toBeVisible();
+  await expect(page.locator(".confirmation-card")).toContainText("GoTyme Bank");
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.reload();
   await page.getByRole("button", { name: "All dates", exact: true }).click();
   await page.getByLabel("Search appointments").fill(id);
   await expect(page.locator("tbody")).toContainText("11:00 AM");
   await page.getByRole("button", { name: /View appointment for/ }).click();
+  await expect(page.getByRole("dialog")).toContainText("GoTyme Bank");
   await page
     .getByRole("button", { name: "Cancel appointment", exact: true })
     .click();
@@ -130,7 +137,7 @@ test("admin service, customer and staff management", async ({ page }) => {
     .getByLabel("Description", { exact: true })
     .fill("A gentle restorative wellness session.");
   await page.getByLabel("Duration (minutes)").fill("45");
-  await page.getByLabel("Price (USD)").fill("75");
+  await page.getByLabel("Price (PHP)").fill("75");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(
     page.getByRole("heading", { name: "Rest & Restore" }),
@@ -138,7 +145,7 @@ test("admin service, customer and staff management", async ({ page }) => {
   await page
     .getByRole("button", { name: "Edit Rest & Restore", exact: true })
     .click();
-  await page.getByLabel("Price (USD)").fill("85");
+  await page.getByLabel("Price (PHP)").fill("85");
   await page.getByLabel("Available for new bookings").uncheck();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(
@@ -296,7 +303,7 @@ test("simultaneous tabs cannot double-book a provider", async ({
   const second = await context.newPage();
   await second.goto("/");
   await expect(
-    second.getByRole("heading", { name: /Good (morning|afternoon), Alex/ }),
+    second.getByRole("heading", { name: /Good (morning|afternoon|evening), Emmanuel/ }),
   ).toBeVisible();
   const prepare = async (tab: Page, customerId: string) => {
     await tab
@@ -354,7 +361,7 @@ test("closed dates, past dates and missing time selections stay unbookable", asy
   sunday.setDate(sunday.getDate() + 28 + ((7 - sunday.getDay()) % 7));
   const key = (d: Date) =>
     new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Taipei",
+      timeZone: "Asia/Manila",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -414,9 +421,9 @@ test("report totals reconcile with appointment exports and period navigation", a
     (sum, row) => sum + Number(row[8]),
     0,
   );
-  const expectedCurrency = new Intl.NumberFormat("en-US", {
+  const expectedCurrency = new Intl.NumberFormat("en-PH", {
     style: "currency",
-    currency: "USD",
+    currency: "PHP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(expectedRevenue);
@@ -454,7 +461,7 @@ test("report totals reconcile with appointment exports and period navigation", a
       .locator(".stat-card")
       .filter({ hasText: "Appointment revenue" })
       .locator(".stat-value"),
-  ).toHaveText("$0");
+  ).toHaveText("₱0");
   await expect(
     page.getByText("No completed appointment revenue for this period."),
   ).toBeVisible();
@@ -474,7 +481,7 @@ for (const [name, width, height] of [
     await page.setViewportSize({ width, height });
     await ready(page);
     for (const [route, heading] of [
-      ["Overview", /Good (morning|afternoon), Alex/],
+      ["Overview", /Good (morning|afternoon|evening), Emmanuel/],
       ["Calendar", "Your calendar"],
       ["Appointments", "Appointments"],
       ["Services", "Our services"],

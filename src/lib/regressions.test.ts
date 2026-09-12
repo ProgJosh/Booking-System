@@ -67,6 +67,7 @@ describe("Form and pricing regressions", () => {
       staffId: "staff-1",
       date: "2026-09-10",
       time: "10:00",
+      paymentMethod: "Cash at studio" as const,
       notes: "",
     };
     const booking = createBooking(db, db.users[0], input, now);
@@ -91,8 +92,8 @@ describe("Form and pricing regressions", () => {
     ).toThrow(/unavailable/);
   });
   it("shows cents and validates currency precision", () => {
-    expect(money(95.75)).toBe("$95.75");
-    expect(money(95)).toBe("$95");
+    expect(money(95.75)).toBe("₱95.75");
+    expect(money(95)).toBe("₱95");
     expect(
       serviceSchema.safeParse({ ...createSeed(now).services[0], price: 95.555 })
         .success,

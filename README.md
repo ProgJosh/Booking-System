@@ -1,4 +1,4 @@
-# Morrow — Booking & Appointment Management
+# Wellora — Booking & Appointment Management
 
 A React + TypeScript + Vite + Tailwind CSS application for a service business. The existing project structure and visual design have been preserved. This project runs in **persistent local demo mode** without backend credentials.
 
@@ -30,9 +30,9 @@ On first launch the application opens the admin demo workspace. Sign out beside 
 
 | Role                     | Email                       | Password      |
 | ------------------------ | --------------------------- | ------------- |
-| Administrator            | `admin@morrow.demo`         | `Morrow2026!` |
-| Staff — Olivia Chen      | `olivia@morrow.demo`        | `Morrow2026!` |
-| Customer — Emma Thompson | `emma.thompson@example.com` | `Morrow2026!` |
+| Administrator                | `admin@BookSync.demo`                     | `Morrow2026!` |
+| Staff — Emmanuel Josh Velo   | `emmanuel.staff@Wellora.demo`             | `Morrow2026!` |
+| Customer — Emmanuel Josh Velo| `emmanuel.josh.velo@example.com`          | `Morrow2026!` |
 
 New customers register with their own password. Administrators create customer and staff accounts with an initial password. Users can change their password in My profile. If you change a demo account's password, its quick demo button no longer uses the correct password; use the normal login form.
 
@@ -43,7 +43,7 @@ New customers register with their own password. Administrators create customer a
 - Services with descriptions, 15-minute duration increments, prices in PHP, active state, and calendar colors.
 - Staff profiles, linked login accounts, assigned services, weekly schedules, and days off.
 - Business contact details, opening hours, and individual closure dates.
-- A three-step booking flow with available slots, notes, a review step, and confirmation.
+- A three-step booking flow with available slots, notes, GCash, Maya, MariBank Philippines, GoTyme Bank, UnionBank, Maya Bank, BPI Mobile App, and cash payment preferences, review, and confirmation.
 - Automatic prevention of provider and customer overlaps; adjacent appointments remain valid.
 - Pending, Confirmed, Completed, Cancelled, and No-show statuses.
 - Rescheduling, cancellation, persistent history, and queued notification events.
@@ -69,13 +69,14 @@ A newly created staff member has no assigned customers until an administrator bo
 
 ## Booking rules and time storage
 
-- Business timezone is fixed to **Asia/Taipei (UTC+08:00)**. Date-only values use `YYYY-MM-DD`, schedule times use `HH:mm`, and appointments store UTC ISO timestamps.
+- Business timezone is fixed to **Asia/Manila (UTC+08:00)**. Date-only values use `YYYY-MM-DD`, schedule times use `HH:mm`, and appointments store UTC ISO timestamps.
 - Slots begin on 15-minute boundaries. The whole appointment must fit both business and staff opening hours, and must not fall on a closure or day off.
 - New bookings must start in the future. Pending and Confirmed appointments reserve availability. Completed appointments retain their historical interval; Cancelled and No-show appointments release it.
 - Provider and customer overlaps are both rejected using half-open intervals: `[start, end)`. A booking can start exactly when the previous one ends.
-- Availability is checked again inside the save transaction. Web Locks serialize writes across tabs using the same origin. A promise queue is the fallback in browsers without Web Locks; that fallback only serializes operations in the current tab.
+- Availability is checked again inside the save transaction. An IndexedDB lease serializes writes across tabs using the same origin, with Web Locks and then a current-tab promise queue as fallbacks when IndexedDB is unavailable.
 - Upcoming active appointments can be moved or cancelled. Customers cannot cancel an appointment that has started. Completion is available only after the end time; No-show is available only after the start time. Terminal statuses cannot be reopened.
 - Existing appointments keep their booked service name, price, and duration when a service is edited. Rescheduling also preserves the original price and duration. Deactivation prevents new bookings but preserves historical records and permits existing appointments to be moved.
+- Bookings store the customer's preferred local payment method, including named Philippine banking apps. Rescheduling can update that preference without changing the booked price.
 - Staff deactivation, removal of an assigned service, schedule reductions, or business closures that conflict with upcoming appointments are rejected until those appointments are rescheduled or cancelled.
 - Revenue counts the booked value of **Completed** appointments only. It is not a payment ledger. Pending, Confirmed, Cancelled, and No-show values do not count as earned revenue. Cents are preserved when displaying amounts.
 
@@ -92,7 +93,7 @@ src/
   lib/
     api.ts                Async local service layer, authentication, locked persistence
     domain.ts             Booking rules, permissions, admin mutations, notification outbox
-    date.ts               Taipei/UTC conversions, periods, month navigation, currency
+    date.ts               Manila/UTC conversions, periods, month navigation, currency
     calendar.ts           Event column assignment and visible calendar hours
     validation.ts         Zod schemas and readable form errors
     *.test.ts             Rule, regression, and API tests
@@ -118,14 +119,14 @@ Booking creation, rescheduling, and status changes enqueue typed notification ev
 
 - Authentication and authorization demonstrate workflows; they are not a production security boundary. Anyone with browser storage access can change the local database. New passwords use salted PBKDF2-SHA-256; seeded demo accounts intentionally share demo credentials. Use sample information only.
 - Data and sessions belong to one browser origin. Tabs share the signed-in account. There is no server synchronization, password recovery, email verification, or cross-device concurrency protection.
-- Email/SMS delivery is queued only. Payments, taxes, refunds, and accounting reconciliation are not implemented.
-- The business timezone and currency are fixed to Taipei and PHP. Overnight shifts are not supported; opening must precede closing within the same calendar day.
+- Email/SMS delivery is queued only. Payment preferences are stored locally, but payment processing, wallet redirects, transaction references, taxes, refunds, and accounting reconciliation are not implemented.
+- The business timezone and currency are fixed to Manila and PHP. Overnight shifts are not supported; opening must precede closing within the same calendar day.
 - Clearing site storage removes this browser's demo records. Export useful reports before clearing data. No automatic reset or destructive migration is performed.
 
 ## Manual acceptance checks
 
 1. Open the app in your normal browser and use each of the three demo roles. Confirm the staff and customer views show only their allowed appointments and actions.
-2. Register a sample customer, book a service, sign out, and sign back in. Confirm the booking appears in My bookings with Pending status.
+2. Register a sample customer and book a service using each payment choice. Confirm the selected method appears on the confirmation and appointment details, then sign out and back in and verify it persists in My bookings.
 3. As admin, confirm the request. Try booking the same provider/time from two tabs, then reschedule and cancel the original appointment. Confirm conflicts are rejected and released slots can be booked.
 4. Change staff hours or add a closure that conflicts with an upcoming booking. Confirm the change is rejected without losing the appointment.
 5. Edit a service price and duration, then open and reschedule an earlier booking. Confirm it retains its original price and duration.
