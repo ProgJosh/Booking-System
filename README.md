@@ -1,135 +1,110 @@
-# Wellora — Booking & Appointment Management
+# Alder & Tide — resort stays and guest reservations
 
-A React + TypeScript + Vite + Tailwind CSS application for a service business. The existing project structure and visual design have been preserved. This project runs in **persistent local demo mode** without backend credentials.
+A premium Philippine travel booking demo built on the existing Wellora React + TypeScript + Vite + Tailwind project. The existing dependencies, account API, browser persistence, and Cloudflare static Worker configuration are retained. No payment is collected and no real room is reserved.
 
 ## Run locally
 
-Prerequisite: Node.js 24 LTS and npm (verified with Node 24.14.0).
+Use the existing Node/npm environment (Node 24 was used for development).
 
 ```powershell
 cd 'C:\Personal Project\Booking System'
-# Only needed on a new checkout or if node_modules is missing:
+# Only on a fresh checkout or when node_modules is missing:
 npm ci
 npm run dev -- --port 5173 --strictPort
 ```
 
-Open **http://127.0.0.1:5173/**. Use the same origin each time: `localhost` and `127.0.0.1` have separate browser storage.
+Open http://127.0.0.1:5173/#home. The homepage is public; sign-in is needed to reserve. Use the same origin consistently: localhost, 127.0.0.1, and different ports each have separate browser data. If changes seem missing, check that the server was started in this folder and refresh the browser.
 
 ```powershell
-npm run build        # Strict TypeScript check and production bundle in dist/
-npm run preview      # Serve the production bundle locally
-npm test             # Domain, calendar, validation, and local API regression tests
-npm run test:e2e      # Real Chromium browser workflow and layout tests
+npm test           # Travel + retained appointment domain/API tests
+npm run test:e2e   # Real Chrome workflows and responsive screenshots
+npm run build      # Strict TypeScript check, then Vite production build
+npm run preview    # Serve dist locally
 ```
 
-The browser suite uses an installed Google Chrome through Playwright's `chrome` channel. It starts the development server if required and reuses one already running on port 5173. On a machine without Chrome, install Chrome or change the Playwright channel to an installed compatible browser. Test contexts are isolated from your normal browser data. Failure traces and layout screenshots are stored in `test-results/`.
+There is no ESLint script or configuration in this project; the build performs strict TypeScript checks, and Prettier can check the new source files. Dependencies were already installed; no installation or dependency change was required for the redesign.
 
-## Demo access
+Playwright uses installed Google Chrome via the chrome channel and starts Vite on port 5173 when needed. Its browser contexts are isolated from your normal browser profile. Screenshots/traces are saved in test-results/. Install Chrome or configure an available Playwright browser on another machine.
 
-On first launch the application opens the admin demo workspace. Sign out beside the profile at the bottom of the sidebar to access the login and registration screen. Quick demo buttons are available there.
+## Demo accounts
 
-| Role                     | Email                       | Password      |
-| ------------------------ | --------------------------- | ------------- |
-| Administrator                | `admin@BookSync.demo`                     | `Morrow2026!` |
-| Staff — Emmanuel Josh Velo   | `emmanuel.staff@Wellora.demo`             | `Morrow2026!` |
-| Customer — Emmanuel Josh Velo| `emmanuel.josh.velo@example.com`          | `Morrow2026!` |
+All unchanged seed accounts use password **Morrow2026!**:
 
-New customers register with their own password. Administrators create customer and staff accounts with an initial password. Users can change their password in My profile. If you change a demo account's password, its quick demo button no longer uses the correct password; use the normal login form.
+| Role          | Email                          | Access                                                                    |
+| ------------- | ------------------------------ | ------------------------------------------------------------------------- |
+| Administrator | admin@BookSync.demo            | All properties, reservations, guests, team, promotions, reports, settings |
+| Staff         | emmanuel.staff@Wellora.demo    | Assigned properties, nightly inventory, reservations and scoped reports   |
+| Guest         | emmanuel.josh.velo@example.com | Own reservations and profile                                              |
 
-## Included features
+Existing credential addresses are intentionally preserved so saved users can still sign in. New guest accounts and staff accounts use their own passwords. An administrator creates team accounts and assigns property managers in the property's editor. An unassigned staff member has no property management access. Team service-desk schedules are retained; room availability is governed by nightly room inventory and room closure dates.
 
-- Registration, login, logout, password changes, and persistent customer profiles.
-- Admin, staff, and customer views with role and ownership checks in the service layer.
-- Services with descriptions, 15-minute duration increments, prices in PHP, active state, and calendar colors.
-- Staff profiles, linked login accounts, assigned services, weekly schedules, and days off.
-- Business contact details, opening hours, and individual closure dates.
-- A three-step booking flow with available slots, notes, GCash, Maya, MariBank Philippines, GoTyme Bank, UnionBank, Maya Bank, BPI Mobile App, and cash payment preferences, review, and confirmation.
-- Automatic prevention of provider and customer overlaps; adjacent appointments remain valid.
-- Pending, Confirmed, Completed, Cancelled, and No-show statuses.
-- Rescheduling, cancellation, persistent history, and queued notification events.
-- Dashboard, day/week/month calendars, list views, pagination, search, and service/provider/status/date filters.
-- Customer directory, contact details, notes, and appointment history.
-- Daily, weekly, and monthly reports, service revenue breakdowns, appointment outcomes, and CSV exports.
-- Responsive desktop, tablet, and mobile screens; loading, empty, validation-error, save-error, and success states.
-- Modal keyboard focus containment, Escape dismissal, and reduced-motion support.
+## Pages and features
 
-## Permissions
+- #home: destination photography, availability search, featured stays, destination collections, experiences, offers, illustrative reviews, help and footer.
+- #stays: destination/date/guest search; setting, budget and amenity filters; recommended or price sorting.
+- #property/palawan (also siargao, benguet, bohol): gallery, amenities, sample location, policies, room prices, availability and optional experiences.
+- #account: login/registration and role demo access.
+- #trips and #profile: account reservations, reservation details, cancellation, rescheduling and account contact/password updates.
+- #manage/overview: daily, rolling seven-day and monthly arrivals, pending requests, completed stay value and upcoming room nights.
+- Management tabs: reservations, occupied-night calendar, properties, rooms, experiences, guests, team, offers, reports and business details. Permissions are checked in the API/domain layer as well as the UI.
 
-| Action                                            | Admin                 | Staff                                     | Customer                  |
-| ------------------------------------------------- | --------------------- | ----------------------------------------- | ------------------------- |
-| See appointments                                  | All                   | Own provider appointments                 | Own bookings              |
-| Create bookings                                   | Any customer/provider | Own provider, existing assigned customers | Self                      |
-| Confirm / complete / mark no-show                 | Yes                   | Own appointments                          | No                        |
-| Reschedule / cancel                               | Yes                   | Own appointments                          | Own upcoming appointments |
-| Manage services, staff, customers, business hours | Yes                   | No                                        | No                        |
-| View reports                                      | All studio activity   | Own dashboard summaries                   | No                        |
-| Edit personal profile / password                  | Yes                   | Yes                                       | Yes                       |
+Motion uses CSS transitions and IntersectionObserver, with no new animation library. Scroll reveals, card hovers, gallery and booking transitions are brief. Reduced-motion preferences disable animation and smooth scrolling. Forms have explicit labels, keyboard focus states and accessible modal focus traps.
 
-A newly created staff member has no assigned customers until an administrator books their first customer appointment. Customer registration always creates a customer role; it cannot create an administrator.
+## Reservation rules
 
-## Booking rules and time storage
+Dates are YYYY-MM-DD calendar days in Asia/Manila. Creation/event timestamps are ISO UTC. Check-in is from 2 PM and check-out by 11 AM; inventory is calculated by occupied nights [check-in, check-out). A checkout frees the room for another arrival on the same day.
 
-- Business timezone is fixed to **Asia/Manila (UTC+08:00)**. Date-only values use `YYYY-MM-DD`, schedule times use `HH:mm`, and appointments store UTC ISO timestamps.
-- Slots begin on 15-minute boundaries. The whole appointment must fit both business and staff opening hours, and must not fall on a closure or day off.
-- New bookings must start in the future. Pending and Confirmed appointments reserve availability. Completed appointments retain their historical interval; Cancelled and No-show appointments release it.
-- Provider and customer overlaps are both rejected using half-open intervals: `[start, end)`. A booking can start exactly when the previous one ends.
-- Availability is checked again inside the save transaction. An IndexedDB lease serializes writes across tabs using the same origin, with Web Locks and then a current-tab promise queue as fallbacks when IndexedDB is unavailable.
-- Upcoming active appointments can be moved or cancelled. Customers cannot cancel an appointment that has started. Completion is available only after the end time; No-show is available only after the start time. Terminal statuses cannot be reopened.
-- Existing appointments keep their booked service name, price, and duration when a service is edited. Rescheduling also preserves the original price and duration. Deactivation prevents new bookings but preserves historical records and permits existing appointments to be moved.
-- Bookings store the customer's preferred local payment method, including named Philippine banking apps. Rescheduling can update that preference without changing the booked price.
-- Staff deactivation, removal of an assigned service, schedule reductions, or business closures that conflict with upcoming appointments are rejected until those appointments are rescheduled or cancelled.
-- Revenue counts the booked value of **Completed** appointments only. It is not a payment ledger. Pending, Confirmed, Cancelled, and No-show values do not count as earned revenue. Cents are preserved when displaying amounts.
+A reservation covers one room for 1–30 nights, with all adults and children counted against capacity. The domain rejects past/invalid dates, reversed dates, excess guests, closed nights, inactive rooms/properties, expired offers and incompatible experiences. Inventory is checked for each night and writes are serialized using the existing browser coordination lock to prevent competing requests taking the last room.
 
-## Project structure
+Guest requests are Pending; staff/admin requests are Confirmed. Authorized staff/admin may confirm requests, complete stays after checkout, cancel, or mark no-show after check-in. Guests may change dates or cancel their own Pending/Confirmed stays before the check-in day. A failed reschedule leaves the original intact. Rescheduling retains the nightly rate and status. Cancellation/no-show releases inventory; history is retained. Inventory reductions, closures and archiving that conflict with upcoming reservations are rejected.
 
-```text
-src/
-  App.tsx                 Workspace shell, role-aware navigation, session state
-  types.ts                Shared domain contracts
-  components/
-    BookingFlow.tsx       Booking wizard, confirmation, appointment actions
-    ui.tsx                Shared fields, modal, badges, avatars, states, CSV export
-  data/seed.ts            Realistic services, staff, customers, relative-date bookings
-  lib/
-    api.ts                Async local service layer, authentication, locked persistence
-    domain.ts             Booking rules, permissions, admin mutations, notification outbox
-    date.ts               Manila/UTC conversions, periods, month navigation, currency
-    calendar.ts           Event column assignment and visible calendar hours
-    validation.ts         Zod schemas and readable form errors
-    *.test.ts             Rule, regression, and API tests
-  pages/
-    Auth.tsx              Login and registration
-    Dashboard.tsx         Studio overview and shared appointment table
-    Appointments.tsx      Calendar/list/customer history, filters, exports
-    Management.tsx        Services, team, customers, business settings, profile
-    Reports.tsx           Appointment and revenue reports
-  styles.css              Existing visual system and responsive rules
- tests/e2e/               Browser workflow and responsive-layout tests
+Offers apply to the room subtotal. Experiences are charged once per reservation. Prices are PHP and include fictional demo taxes, with no additional fees. Reservation snapshots keep booked property/room names, room rates, experience prices and totals for history/reporting.
+
+GCash, Maya, MariBank Philippines, GoTyme Bank, UnionBank, Maya Bank, BPI Mobile App and cash at property are **saved payment preferences only**. Wordmark-style UI identifiers do not imply bank affiliation. No bank account credentials, references, proof, redirect or payment processing is implemented. The legacy internal cash value is retained for data compatibility; the travel UI labels it Cash at property.
+
+Reports use checkout dates. Completed stay value is a revenue proxy, not evidence of collected payments. CSV export includes filtered reservations and protects spreadsheet formula cells.
+
+## Existing data and migration
+
+Storage keys remain morrow.database.v1 and morrow.session.v1. On first initialization the travel collection is added as Database.travel without replacing legacy appointment data, users, schedules or credentials. Untouched default business branding and demo hospitality roles are adapted; customized contact details are preserved. Fresh storage opens the public homepage without auto-signing in.
+
+The original appointment modules and their regression tests remain in src/ for compatibility, but the active navigation uses the travel pages. Legacy appointments are not converted into overnight reservations and are not included in stay reports. Do not clear normal browser storage to apply the redesign. For a clean demo, use a separate browser profile.
+
+The travel API in src/lib/api.ts is the adapter boundary for a future backend. Domain validation/inventory lives in src/lib/travel.ts; local fixtures in src/data/travelSeed.ts; public/auth/admin views in src/pages/Travel*.tsx; reusable booking dialogs in src/components/StayBooking.tsx. Reservation events queue locally with delivery=queued, ready to connect to an email/SMS dispatcher.
+
+## Production and Cloudflare
+
+```powershell
+npm run build
+npx wrangler deploy --dry-run   # Validate/bundle locally; does not deploy
+# Only when you explicitly intend to publish:
+npm run deploy
 ```
 
-## Persistence and future backend integration
+wrangler.jsonc retains Worker name booking-system, compatibility date 2026-09-10, ./dist assets, and single-page fallback. Do not put credentials in the repository. No deployment was performed as part of this redesign.
 
-The versioned database is stored under `morrow.database.v1`; the current local session is under `morrow.session.v1`. Data persists across refreshes, and storage events update other tabs. Initial seeding is also locked so two tabs cannot overwrite each other's first-run data. Existing saved data is not reseeded or reset by code updates.
+Before accepting real guests, replace the browser adapter with a backend that enforces authentication, role ownership, transactional shared room inventory and secure sessions. Connect an email/SMS service for delivery; queued events currently send nothing. A payment provider would require a separate explicitly authorized integration; this demo does not collect money. Browser role checks and password hashes are useful for demonstration, not a production security boundary.
 
-`src/lib/api.ts` is the integration boundary. Replace its local read/write and authentication methods with HTTP calls while keeping the typed UI contracts. Move authorization and validation to the server, and revalidate booking availability inside a database transaction. Use database constraints or locks to prevent overlapping bookings across devices and simultaneous requests.
+## Imagery and sample content
 
-Booking creation, rescheduling, and status changes enqueue typed notification events in the same saved database update. Events include an ID, recipient, booking reference, event type, message, channel, and queued delivery state. A future server worker can resolve contact information, invoke an email/SMS provider, and record delivery attempts and idempotency using the event ID. This demo does not send any messages, and no provider credentials are embedded in the browser.
+All property identities, sample locations, rates, reservations, ratings and review stories are fictional. Photographs are atmosphere references, not evidence of real listed resort facilities. Optimized JPEG assets are stored locally, so the app does not depend on external image loading during use. Photos were sourced from Unsplash:
 
-## Limits of local demo mode
+- hero: https://images.unsplash.com/photo-1571896349842-33c89424de2d
+- island: https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86
+- coast: https://images.unsplash.com/photo-1519046904884-53103b34b206
+- forest: https://images.unsplash.com/photo-1448375240586-882707db888b
+- room: https://images.unsplash.com/photo-1611892440504-42a792e24d32
+- pool: https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7
+- dining: https://images.unsplash.com/photo-1414235077428-338989a2e8c0
 
-- Authentication and authorization demonstrate workflows; they are not a production security boundary. Anyone with browser storage access can change the local database. New passwords use salted PBKDF2-SHA-256; seeded demo accounts intentionally share demo credentials. Use sample information only.
-- Data and sessions belong to one browser origin. Tabs share the signed-in account. There is no server synchronization, password recovery, email verification, or cross-device concurrency protection.
-- Email/SMS delivery is queued only. Payment preferences are stored locally, but payment processing, wallet redirects, transaction references, taxes, refunds, and accounting reconciliation are not implemented.
-- The business timezone and currency are fixed to Manila and PHP. Overnight shifts are not supported; opening must precede closing within the same calendar day.
-- Clearing site storage removes this browser's demo records. Export useful reports before clearing data. No automatic reset or destructive migration is performed.
+Hero loading is prioritized; supporting imagery is lazy-loaded with explicit dimensions. Replace stock imagery and illustrative ratings with verified property assets before publishing a real catalog.
 
 ## Manual acceptance checks
 
-1. Open the app in your normal browser and use each of the three demo roles. Confirm the staff and customer views show only their allowed appointments and actions.
-2. Register a sample customer and book a service using each payment choice. Confirm the selected method appears on the confirmation and appointment details, then sign out and back in and verify it persists in My bookings.
-3. As admin, confirm the request. Try booking the same provider/time from two tabs, then reschedule and cancel the original appointment. Confirm conflicts are rejected and released slots can be booked.
-4. Change staff hours or add a closure that conflicts with an upcoming booking. Confirm the change is rejected without losing the appointment.
-5. Edit a service price and duration, then open and reschedule an earlier booking. Confirm it retains its original price and duration.
-6. Compare a completed appointment with the corresponding daily/monthly report and downloaded CSV. Confirm cancelled appointments do not contribute revenue.
-7. Check the app on your physical phone/tablet, including native date/time pickers, on-screen keyboard, horizontal calendar/table scrolling, and modal scrolling. Browser viewport checks do not replace testing your particular device and browser.
-8. Review the sample branding, actual services, prices, opening hours, and cancellation policy before replacing demo data. Connect a secured backend and message provider before any production use.
+1. Open the homepage in your regular Brave browser at your usual zoom. Search dates/guests and inspect a property gallery on desktop and phone.
+2. Register with sample details, choose experiences and a valid offer, select a bank preference and submit. Verify the pending confirmation, then refresh My stays.
+3. Change dates, confirm the retained rate, and cancel. Try a past date, an invalid offer and an unavailable night.
+4. Sign in as admin, create a room type or offer, edit guest/team details, assign a manager, and confirm a pending stay. Check calendar and CSV reports.
+5. Sign in as staff and verify only assigned properties can be managed. Check reduced-motion/keyboard navigation and confirm no money or notification is sent.
+
+Automated tests cover these domain rules and key Chrome workflows; your specific Brave settings, extensions, OS zoom, and production services still need acceptance testing.

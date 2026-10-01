@@ -1,87 +1,78 @@
-# Completion and verification report
+# Alder & Tide implementation and verification
 
-Verified on September 9, 2026, against the existing Booking System project. Baseline: `c304918` (`Complete initial booking system implementation`). The React, TypeScript, Vite, Tailwind, and local API structure was retained. No project reset, recreation, dependency reinstall, or redesign was performed during this continuation.
+The existing Wellora Booking System is now a public travel/resort booking demo called Alder & Tide. Its React/TypeScript/Vite/Tailwind stack, installed dependencies, persisted accounts, legacy appointment records, and Cloudflare static Worker setup were retained.
 
-## What was already complete
+## Completed behavior
 
-The existing project contained customer/admin/staff accounts, registration and login, service and provider management, schedules, booking and appointment actions, history, calendars, search/filter/list screens, dashboard summaries, reports, notification queuing, and responsive styles. These features were preserved and exercised through the tests below.
+- Public homepage, destination discovery, property/room galleries, amenities and policies, experiences, seasonal offers and clearly labeled illustrative guest stories.
+- Availability search by destination, dates and guests; setting, budget and amenity filters; price/recommendation sorting; useful empty/error/loading states.
+- Account registration/login/profile updates with original demo credentials preserved.
+- Three-step guest reservation flow with contact details, nights, room summary, optional experiences, room-only discounts, PHP totals, bank/wallet/cash preferences and pending confirmation.
+- Inventory validation across each occupied night, adjacent stays, room closures, capacity and inactive properties. Competing reservations are serialized across tabs using existing browser coordination.
+- Own reservation history, persistent status/details, change dates, cancellation and inventory release. Failed reschedules retain the original; successful changes retain the booked room rate and status.
+- Admin property/room/experience/offer management, guest and staff accounts, assigned property managers, retained service-desk schedules, business contact settings, reservation calendar/list, status actions and reports/CSV export.
+- Staff management restricted to assigned property reservations and inventory; administrators manage the full collection. Guest ownership is enforced in the API layer.
+- Daily/rolling seven-day/monthly dashboard statistics. Reports calculate completed stay value by checkout date; no actual payment collection is implied.
+- Local notification events queued for future integration.
+- Responsive 320/390-pixel mobile, 820-pixel tablet and 1440-pixel desktop checks; keyboard modal focus and accessible form/icon labels.
+- CSS transitions and IntersectionObserver scroll reveals, with reduced-motion support. No GSAP, Anime.js or Three.js dependency was added.
 
-## Work completed
+## Files changed
 
-- Verified the account-navigation fixes left by the interrupted task: new logins land in the appropriate workspace and customer history persists.
-- Serialized first-run initialization, registration, and mutations with the same database lock. A real two-tab browser test verifies that competing provider bookings produce one saved appointment and one conflict error.
-- Restricted availability exclusions to appointments the current account can access, with matching customer and service identifiers.
-- Preserved booked service name, price, and duration in the rescheduling UI and validation, including existing appointments for archived services.
-- Normalized email, staff, and business inputs; rejected punctuation-only phone numbers and prices with more than two decimal places.
-- Displayed cents correctly and verified revenue against appointment exports.
-- Fixed chained calendar overlaps using stable event columns, and made the calendar include early or late appointments outside the original display range.
-- Verified short-month navigation and leap-year boundaries.
-- Fixed the staff dashboard's restricted report shortcut and replaced fixed decorative trend lines with values calculated from appointments.
-- Cached date/time formatters to remove a rendering slowdown exposed by browser tests.
-- Refreshed time-dependent workspace data periodically and kept sidebar navigation reachable on shorter screens.
-- Included links in modal focus containment and prevented narrow schedule fields from overflowing.
-- Added setup, demo credentials, architecture, booking rules, integration guidance, limitations, and manual acceptance instructions in README.md.
+Updated existing files:
 
-## Final executed checks
+- VERIFICATION.md — current implementation and verification report.
+- src/App.tsx — public/account/management navigation and application shell, identity and footer.
+- src/main.tsx — travel stylesheet after retained styles.
+- src/components/ui.tsx — reliable input labels and hint descriptions.
+- src/lib/api.ts — travel catalog, availability, reservation/management methods and additive migration.
+- src/types.ts — optional travel data while retaining legacy types.
+- src/lib/api.test.ts — explicit admin login for retained appointment tests after public-first startup.
+- tests/e2e/workflows.spec.ts — adapted browser workflows and responsive verification.
+- index.html and public/favicon.svg — travel metadata and compass identity.
+- README.md — setup, account credentials, rules, architecture, migration, testing, deployment and manual checks.
+- tsconfig.tsbuildinfo — generated build cache.
 
-| Check                    | Result                                                                 |
-| ------------------------ | ---------------------------------------------------------------------- |
-| `npm ls --depth=0`       | Existing dependencies present; no reinstall needed                     |
-| `npm run build`          | PASS — strict TypeScript check and Vite production bundle; exit code 0 |
-| `npm test`               | PASS — 42 tests across 3 files                                         |
-| `npm run test:e2e`       | PASS — 11 browser tests, 57.5 seconds                                  |
-| `git diff --check`       | PASS — no whitespace errors                                            |
-| `http://127.0.0.1:5173/` | HTTP 200; development server left running                              |
+Added:
 
-The build emits two non-blocking Rollup notices about PURE annotations in the installed Zod package. They do not produce TypeScript errors, build failures, or failed browser checks. Playwright also prints an environment color-setting warning; tests complete successfully.
+- src/lib/travel.ts — typed reservation, inventory, pricing, authorization and management domain.
+- src/data/travelSeed.ts — fictional Philippine properties, rooms, experiences, offers and reservations.
+- src/pages/TravelSite.tsx, TravelAuth.tsx, TravelWorkspace.tsx — public browsing, accounts and management.
+- src/components/StayBooking.tsx — reservation, confirmation, rescheduling and cancellation dialogs.
+- src/travel.css — responsive visual design and motion.
+- src/lib/travel.test.ts, travel-api.test.ts — overnight rules, permissions, migration, privacy and persistence tests.
+- public/images/{hero,island,coast,forest,room,pool,dining}.jpg — optimized local atmosphere photographs.
 
-The final Playwright result is recorded in `test-results/.last-run.json` as `passed` with no failed tests. Earlier failures were investigated and corrected before the final full run. No successful result has been inferred from a partial run.
+wrangler.jsonc, package.json, package-lock.json, the original appointment modules and original domain regression tests were preserved. No dependencies were installed or added. The unrelated Portfolio project was not redesigned.
 
-## Browser coverage
+## Checks actually performed
 
-- Dashboard and all management/navigation pages, with browser runtime-error checks.
-- New appointments, booking confirmation, rescheduling, reload persistence, cancellation, and queued notifications.
-- Admin creation/editing of services, customers, staff, and working staff login credentials.
-- Customer registration, Pending bookings, profile editing, invalid-password handling, and subsequent login.
-- Two tabs submitting overlapping provider appointments: exactly one succeeds.
-- Closed dates, past dates, and missing time-slot selections cannot advance to a successful booking.
-- Report revenue and appointment counts reconciled against downloaded appointment CSV data; empty future reports and short-month navigation checked.
-- Mobile: **390 × 844**; tablet: **768 × 1024**; desktop: **1440 × 1040**.
-- At each size: Overview, Calendar, Appointments, Services, Team, Customers, Reports, Settings, and My profile checked for document overflow, and staff management dialogs opened and saved.
-- Mobile navigation and Escape dismissal checked. Layout screenshots are saved in `test-results/` for the overview, settings, and staff dialogs.
+- npm test: **67 passed in 5 test files**.
+- npm run test:e2e: **14 passed** in the final complete run.
+- npm run build: **passed**, including strict TypeScript and Vite production output.
+- Prettier --check for the new/rewritten travel source, tests and README: **passed**.
+- git diff --check: **passed**.
+- Wrangler deploy --dry-run: **passed**; 15 static build assets read, no bindings required, no deployment performed.
+- Actual Chrome workflows covered registration, login errors, profile persistence, offers/extras/payment preference, confirmation/history, rescheduling, cancellation, admin management, report CSV, staff permissions, gallery/search filters, empty states, keyboard focus, reduced motion and screen widths.
+- Independent-tab concurrency was tested with navigator.locks disabled to exercise the IndexedDB fallback.
+- Homepage, detail and booking screenshots were generated and visually inspected. Visible local images were loaded and checked; responsive workflows recorded no browser page errors or document horizontal overflow.
 
-Domain/API tests additionally cover cross-customer and staff ownership restrictions, admin-only mutations, inactive accounts/services, provider/customer overlap boundaries, schedule conflicts, closures, days off, notification events, failed-reschedule preservation, terminal status rules, password hashing/change, duplicate accounts, browser storage errors, calendar columns, timezone boundaries, and currency precision.
+No ESLint setup/script exists in the retained project. The build reports harmless upstream Zod comment annotation warnings; it exits successfully. No successful result was inferred from code inspection alone.
 
-## Files changed in this continuation
+## Remaining limitations and services
 
-| File                             | Change                                                                                                              |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `src/App.tsx`                    | Periodic time-sensitive workspace refresh                                                                           |
-| `src/components/BookingFlow.tsx` | Original booked service name displayed during rescheduling                                                          |
-| `src/components/ui.tsx`          | Modal focus trap includes links                                                                                     |
-| `src/lib/api.ts`                 | Shared initialization/registration/mutation locking, availability ownership checks, normalized staff account lookup |
-| `src/lib/date.ts`                | Cached date/time formatters and cent-accurate currency display                                                      |
-| `src/lib/domain.ts`              | Normalized management inputs and archived-service rescheduling                                                      |
-| `src/lib/validation.ts`          | Email, phone, and currency validation                                                                               |
-| `src/lib/calendar.ts`            | NEW — stable event positioning and dynamic calendar hours                                                           |
-| `src/pages/Appointments.tsx`     | Integrates calendar positioning and hours helpers                                                                   |
-| `src/pages/Dashboard.tsx`        | Valid staff shortcut and data-derived trends                                                                        |
-| `src/styles.css`                 | Short-screen navigation and narrow schedule-field fixes                                                             |
-| `src/lib/api.test.ts`            | NEW — 6 local API integration tests                                                                                 |
-| `src/lib/regressions.test.ts`    | NEW — 8 calendar, date, pricing, and validation regressions                                                         |
-| `tests/e2e/workflows.spec.ts`    | Expanded and formatted browser workflow suite                                                                       |
-| `README.md`                      | NEW — operation, accounts, architecture, limitations, and manual acceptance guide                                   |
-| `VERIFICATION.md`                | NEW — this report                                                                                                   |
-| `tsconfig.tsbuildinfo`           | Existing tracked TypeScript build metadata regenerated by the build                                                 |
+This is persistent local mock mode. Reservations, rates, ratings and property names are fictional. Pictures are atmosphere references, not photographs of actual listed properties. No email/SMS is delivered and no payment is collected. Bank/wallet UI identifiers save a preference only and do not imply affiliation.
 
-## Remaining limitations
+Browser storage and local roles are not a production security boundary. A production system still requires a backend, secure sessions, server-enforced ownership and transactional shared inventory across devices. Notifications need an email/SMS provider. Real payment processing requires a separately authorized provider integration. No credentials were introduced and no live deployment was performed.
 
-This is a browser-local demo, not a secured production backend. Local storage is editable by the browser user, and tabs share one session. The fallback for browsers without Web Locks provides same-tab serialization only. There is no cross-device synchronization, password recovery, email verification, payment collection, or actual email/SMS delivery. Notifications remain queued. Timezone and currency are fixed to Taipei and USD, and schedules must open and close on the same day.
+Original wellness appointments remain stored for compatibility; they are not converted into resort stays or included in travel reports. New storage is public-first. Existing sessions and customized business contact details are preserved.
 
-## Manual acceptance still recommended
+## Manual acceptance
 
-1. Test native date/time controls, keyboard entry, modal scrolling, and calendar/table scrolling on your physical phone/tablet and preferred browser.
-2. Use each demo account and confirm the permissions and customer/staff visibility match your business policy.
-3. Enter your actual services, prices, hours, and closure policy; try one booking, conflicting booking, reschedule, and cancellation with sample customer details.
-4. Download a revenue report and confirm that completed-appointment value is the reporting definition you want.
-5. Before real customer use, connect a secured backend and notification provider, and test real message delivery and multi-device concurrency there. Those external capabilities cannot be verified in this local demo.
+1. Open http://127.0.0.1:5173/#home in your regular Brave browser. Confirm the new name/favicon, photos, sidebar-free layout, keyboard focus, and normal browser/OS zoom.
+2. Search a destination and dates, inspect a room, register with sample details, choose an experience/offer/banking preference and submit.
+3. Refresh My stays, change the dates, then cancel. Confirm unavailable/invalid date validation and retained history.
+4. Use the admin demo to manage a property, room closures, guests, a new staff account and its property assignments. Confirm pending stays and inspect the calendar and CSV reports.
+5. Check the staff account's scoped access and a real phone/tablet. Confirm reduced-motion behavior, and verify that no funds or messages are sent.
+
+See README.md for detailed setup and unchanged demo account credentials.

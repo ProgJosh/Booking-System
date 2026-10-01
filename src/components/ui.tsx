@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useId, cloneElement, isValidElement, type ReactNode } from 'react';
 import { X, ArrowUpRight, CalendarDays, LoaderCircle, Check, AlertCircle } from 'lucide-react';
 import type { Status } from '../types';
 export function IconLogo({ small = false }: { small?: boolean }) { return <span className={`logo-mark ${small ? 'small' : ''}`}><img src="/website-icon.png" alt="" aria-hidden="true" /></span>; }
@@ -15,5 +15,5 @@ export function Modal({ title, subtitle, children, onClose, wide = false }: { ti
 }
 export function Toast({ message }: { message: string }) { return <div className="toast" role="status"><Check size={17}/>{message}</div>; }
 export function PanelHeading({ title, detail, action, onAction }: { title: string; detail?: string; action?: string; onAction?: () => void }) { return <div className="panel-heading"><div><h2>{title}</h2>{detail && <p>{detail}</p>}</div>{action && <button className="text-btn" onClick={onAction}>{action}<ArrowUpRight size={15}/></button>}</div>; }
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) { return <label className="field"><span>{label}</span>{children}{hint && <small>{hint}</small>}</label>; }
+export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) { const id = useId(); const control = isValidElement<{ "aria-labelledby"?: string; "aria-describedby"?: string }>(children) && typeof children.type === "string" && ["input", "select", "textarea"].includes(children.type) ? cloneElement(children, { "aria-labelledby": id, "aria-describedby": hint ? id + "-hint" : undefined }) : children; return <label className="field"><span id={id}>{label}</span>{control}{hint && <small id={id + "-hint"}>{hint}</small>}</label>; }
 export function downloadCSV(filename: string, rows: (string | number)[][]) { const csv = rows.map(row => row.map(cell => { const value = String(cell); return `"${(/^[=+\-@\t\r]/.test(value) ? "'" : '') + value.replaceAll('"', '""')}"`; }).join(',')).join('\r\n'); const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }

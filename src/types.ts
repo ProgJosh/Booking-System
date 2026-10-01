@@ -1,3 +1,4 @@
+import type { TravelData } from './lib/travel';
 export type Role = 'admin' | 'staff' | 'customer';
 export type Status = 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled' | 'No-show';
 export const STATUSES: Status[] = ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'No-show'];
@@ -10,6 +11,6 @@ export type Staff = { id: string; name: string; email: string; title: string; se
 export type Booking = { id: string; customerId: string; serviceId: string; staffId: string; start: string; end: string; status: Status; price: number; serviceName: string; duration: number; paymentMethod: PaymentMethod; notes: string; createdAt: string };
 export type Notification = { id: string; bookingId: string; recipientId: string; type: 'booking.created' | 'booking.rescheduled' | 'booking.status_changed'; channel: 'email'; delivery: 'queued'; createdAt: string; message: string };
 export type Settings = { name: string; email: string; phone: string; address: string; timezone: 'Asia/Manila'; schedule: ScheduleDay[]; closedDates: string[] };
-export type Database = { version: 1; users: User[]; services: Service[]; staff: Staff[]; bookings: Booking[]; notifications: Notification[]; settings: Settings };
+export type Database = { version: 1; users: User[]; services: Service[]; staff: Staff[]; bookings: Booking[]; notifications: Notification[]; settings: Settings; travel?: TravelData };
 export type BookingInput = { customerId: string; serviceId: string; staffId: string; date: string; time: string; paymentMethod: PaymentMethod; notes: string };
 export type Page = 'Overview' | 'Calendar' | 'Appointments' | 'Customers' | 'Services' | 'Team' | 'Reports' | 'Settings' | 'My bookings' | 'My profile';

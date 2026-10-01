@@ -13,6 +13,7 @@ beforeEach(async () => {
   vi.stubGlobal("navigator", {});
   api = (await import("./api")).api;
   await api.initialize();
+  await api.login('admin@BookSync.demo', 'Morrow2026!');
 });
 afterEach(() => vi.unstubAllGlobals());
 function futureInput() {

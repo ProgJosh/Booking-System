@@ -1,3 +1,6 @@
+import { travelSeed } from '../data/travelSeed';
+import * as stays from './travel';
+import type { ReservationInput, Property, Room, Promotion, Experience } from './travel';
 import type { BookingInput, Database, Role, Service, Settings, Staff, Status, User } from '../types';
 import { PAYMENT_METHODS } from '../types';
 import { createSeed, defaultSchedule } from '../data/seed';
@@ -76,7 +79,9 @@ async function transaction<T>(operation: (db: Database, user: User) => T | Promi
 }
 function visible(db: Database, user: User): Database {
   const bookings = db.bookings.filter(b => domain.canAccess(user, b));
-  return { ...db, bookings, users: db.users.filter(u => user.role === 'admin' || u.id === user.id || (user.role === 'staff' && bookings.some(b => b.customerId === u.id))).map(({ passwordHash: _hash, salt: _salt, ...u }) => u), notifications: db.notifications.filter(n => user.role === 'admin' || bookings.some(b => b.id === n.bookingId)) };
+  const reservations = db.travel?.reservations.filter(r => stays.canAccessReservation(db.travel!, user, r)) || [];
+  const filteredTravel = db.travel ? { ...db.travel, reservations, events: db.travel.events.filter(e => user.role === 'admin' || reservations.some(r => r.id === e.reservationId)) } : undefined;
+  return { ...db, bookings, travel: filteredTravel, users: db.users.filter(u => user.role === 'admin' || u.id === user.id || (user.role === 'staff' && (bookings.some(b => b.customerId === u.id) || reservations.some(r => r.customerId === u.id)))).map(({ passwordHash: _hash, salt: _salt, ...u }) => u), notifications: db.notifications.filter(n => user.role === 'admin' || bookings.some(b => b.id === n.bookingId)) };
 }
 export const api = {
   async initialize() {
@@ -86,10 +91,17 @@ export const api = {
         // Demo-only shared password hash. Newly created accounts use unique salts.
         const credential = await credentials(DEMO_PASSWORD);
         db.users.forEach(u => Object.assign(u, credential));
-        write(db); localStorage.setItem(SESSION_KEY, 'admin-1');
+        write(db); localStorage.setItem(SESSION_KEY, '');
       }
       const db = read();
       let migrated = false;
+      if (!db.travel) {
+ db.travel = travelSeed();
+ const titles: Record<string, string> = { 'Senior wellness therapist': 'Senior guest experience host', 'Bodywork specialist': 'Coastal property host', 'Skin & beauty specialist': 'Mountain retreat host', 'Movement & wellness coach': 'Island property host', 'Wellness specialist': 'Guest reservations coordinator' };
+ db.staff.forEach(member => { if (titles[member.title]) member.title = titles[member.title]; });
+ migrated = true;
+}
+      if (['Wellness Studio', 'Morrow Wellness Studio', 'BookSync Wellness Studio'].includes(db.settings.name)) { db.settings.name = 'Alder & Tide'; db.settings.email = 'hello@alderandtide.demo'; migrated = true; }
       if (db.settings.timezone !== TIMEZONE) {
         db.settings.timezone = TIMEZONE;
         migrated = true;
@@ -119,6 +131,15 @@ export const api = {
     }).catch(error => { initializing = undefined; throw error; });
     return initializing;
   },
+  catalog() { const data = stays.travel(read()); return { ...data, reservations: [], events: [] }; },
+  available(roomId: string, checkIn: string, checkOut: string, excludeId?: string) { const db = read(), data = stays.travel(db); stays.validateDates(checkIn, checkOut); if (excludeId) { const user = actor(db), reservation = data.reservations.find(r => r.id === excludeId); if (!reservation || !stays.canAccessReservation(data, user, reservation)) throw new Error('Access denied.'); } const room = data.rooms.find(r => r.id === roomId); return room ? stays.roomsLeft(data, room, checkIn, checkOut, excludeId) : 0; },
+  preview(input: ReservationInput, id?: string) { const db = read(), data = stays.travel(db); let existing; if (id) { const user = actor(db); existing = data.reservations.find(r => r.id === id); if (!existing || !stays.canAccessReservation(data, user, existing)) throw new Error('Access denied.'); } return stays.quote(data, input, new Date(), existing); },
+  reserve(input: ReservationInput, id?: string) { return transaction((db, user) => stays.reserve(db, user, input, new Date(), id)); },
+  reservationStatus(id: string, status: Status) { return transaction((db, user) => stays.reservationStatus(db, user, id, status)); },
+  saveExperience(input: Experience) { return transaction((db, user) => stays.saveExperience(db, user, input)); },
+  saveProperty(input: Property) { return transaction((db, user) => stays.saveProperty(db, user, input)); },
+  saveRoom(input: Room) { return transaction((db, user) => stays.saveRoom(db, user, input)); },
+  savePromotion(input: Promotion) { return transaction((db, user) => stays.savePromotion(db, user, input)); },
   snapshot() { const db = read(); try { const user = actor(db); return { db: visible(db, user), user: { ...user, passwordHash: undefined, salt: undefined } }; } catch { return { db: null, user: null }; } },
   async login(email: string, password: string) {
     const db = read(); const normalizedEmail = email.trim().toLowerCase(); const user = db.users.find(u => u.email.trim().toLowerCase() === normalizedEmail);
@@ -137,7 +158,7 @@ export const api = {
   reschedule(id: string, input: BookingInput) { return transaction((db, user) => domain.rescheduleBooking(db, user, id, input)); },
   status(id: string, status: Status) { return transaction((db, user) => domain.changeStatus(db, user, id, status)); },
   saveService(input: Service) { return transaction((db, user) => domain.saveService(db, user, input)); },
-  saveStaff(input: Staff, password?: string) { return transaction(async (db, user) => { const isNew = !db.staff.some(s => s.id === input.id); if (isNew && (!password || password.length < 8)) throw new Error('Set an initial staff password with at least 8 characters.'); domain.saveStaff(db, user, input); if (isNew) { const account = db.users.find(u => u.email === emailSchema.parse(input.email))!; Object.assign(account, await credentials(password!)); } }); },
+  saveStaff(input: Staff, password?: string) { return transaction(async (db, user) => { const isNew = !db.staff.some(s => s.id === input.id); if (isNew && (!password || password.length < 8)) throw new Error('Set an initial staff password with at least 8 characters.'); if (!input.active && db.travel?.properties.some(p => p.active && p.managerIds.includes(input.id))) throw new Error('Unassign this staff member from active properties before deactivating their account.'); domain.saveStaff(db, user, input); if (isNew) { const account = db.users.find(u => u.email === emailSchema.parse(input.email))!; Object.assign(account, await credentials(password!)); } }); },
   saveSettings(input: Settings) { return transaction((db, user) => domain.saveSettings(db, user, input)); },
   saveCustomer(input: { id?: string; name: string; email: string; phone: string; notes?: string; password?: string }) { return transaction(async (db, user) => {
     domain.requireAdmin(user); const parsed = profileSchema.parse(input);
